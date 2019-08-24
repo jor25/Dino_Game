@@ -51,14 +51,31 @@ class player(object):
                 win.blit(dinoL, (self.x, self.y))
 
 
-def draw_window(Dino):
+class fire_ball(object):
+    def __init__(self, x, y, radius, color, facing):
+        self.x = x
+        self.y = y
+        self.radius = radius
+        self.color = color
+        self.facing = facing
+        self.vel = 20 * facing
+
+    def draw(self, win):
+        pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
+
+
+def draw_window(Dino, bullets):
     win.blit(bg, (0, 0))
-    Dino.draw_char(win)
+    Dino.draw_char(win)  # Draws dino
+    for bullet in bullets:  # Draws fireballs
+        bullet.draw(win)
     pygame.display.update()
 
 
 if __name__ == "__main__":
     DINO = player(50, 425, 40, 60)
+
+    bullets = []
 
     run = True
     while run:
@@ -68,7 +85,22 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 run = False
 
+        for bullet in bullets:
+            if bullet.x < screen_width and bullet.x > 0:
+                bullet.x += bullet.vel
+            else:
+                bullets.pop(bullets.index(bullet))
+
         keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_SPACE]:
+            if DINO.face_LR:  # Facing right
+                facing = 1
+            else:
+                facing = -1
+            if len(bullets) < 20:
+                bullets.append(
+                    fire_ball(round(DINO.x + DINO.w // 2), round(DINO.y + DINO.h // 2), 6, (255, 0, 0), facing))
 
         if keys[pygame.K_LEFT] and DINO.x > DINO.vel:
             DINO.x -= DINO.vel
@@ -86,7 +118,7 @@ if __name__ == "__main__":
             DINO.walk_count = 0
 
         if not (DINO.jumping):
-            if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
+            if keys[pygame.K_UP]:
                 DINO.jumping = True
                 DINO.right = False
                 DINO.left = False
@@ -102,6 +134,6 @@ if __name__ == "__main__":
                 DINO.jumping = False
                 DINO.jump_height = 10
 
-        draw_window(DINO)
+        draw_window(DINO, bullets)
 
 pygame.quit()
