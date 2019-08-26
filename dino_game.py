@@ -64,9 +64,53 @@ class fire_ball(object):
         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
 
 
-def draw_window(Dino, bullets):
+class enemy(object):
+    go_right = [pygame.image.load('bird_R1.png'), pygame.image.load('bird_R2.png')]
+    go_left = [pygame.image.load('bird_L1.png'), pygame.image.load('bird_L2.png')]
+
+    def __init__(self, x, y, w, h, end):
+        self.x = x  # x coordinate
+        self.y = y  # y coordinate
+        self.w = w  # Character width
+        self.h = h  # Character height
+        self.end = end  # Point to turn around
+        self.path = [self.x, self.end]
+        self.vel = 10
+
+        self.walk_count = 0
+
+    def draw(self, win):
+        self.move()
+        if self.walk_count + 1 >= 30:
+            self.walk_count = 0
+
+        if self.vel > 0:    # moving right
+            win.blit(self.go_right[self.walk_count % 2], (self.x, self.y))
+            self.walk_count += 1
+        else:
+            win.blit(self.go_left[self.walk_count % 2], (self.x, self.y))
+            self.walk_count += 1
+
+
+    def move(self):
+        if self.vel > 0:
+            if self.x + self.vel < self.path[1]:
+                self.x += self.vel
+            else:
+                self.vel = self.vel * -1
+                self.walk_count = 0
+        else:
+            if self.x - self.vel > self.path[0]:
+                self.x += self.vel
+            else:
+                self.vel = self.vel * -1
+                self.walk_count = 0
+
+
+def draw_window(Dino, bullets, Bird):
     win.blit(bg, (0, 0))
     Dino.draw_char(win)  # Draws dino
+    Bird.draw(win)
     for bullet in bullets:  # Draws fireballs
         bullet.draw(win)
     pygame.display.update()
@@ -74,7 +118,7 @@ def draw_window(Dino, bullets):
 
 if __name__ == "__main__":
     DINO = player(50, 425, 40, 60)
-
+    BIRD = enemy(100, 425, 46, 42, 500)
     bullets = []
 
     run = True
@@ -134,6 +178,6 @@ if __name__ == "__main__":
                 DINO.jumping = False
                 DINO.jump_height = 10
 
-        draw_window(DINO, bullets)
+        draw_window(DINO, bullets, BIRD)
 
 pygame.quit()
