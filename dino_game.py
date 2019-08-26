@@ -33,6 +33,7 @@ class player(object):
         self.right = False
         self.face_LR = True  # True = Right, False = Left
         self.walk_count = 0
+        self.hitbox = (self.x, self.y, self.w, self.h)  # x, y, w, and h
 
     def draw_char(self, win):
         if self.walk_count + 1 >= 30:
@@ -49,9 +50,11 @@ class player(object):
                 win.blit(dino, (self.x, self.y))
             else:
                 win.blit(dinoL, (self.x, self.y))
+        self.hitbox = (self.x, self.y, self.w, self.h)      # This may be a bit redundant
+        pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
 
 
-class fire_ball(object):
+class projectile(object):
     def __init__(self, x, y, radius, color, facing):
         self.x = x
         self.y = y
@@ -76,8 +79,9 @@ class enemy(object):
         self.end = end  # Point to turn around
         self.path = [self.x, self.end]
         self.vel = 10
-
         self.walk_count = 0
+        self.hitbox = (self.x, self.y, self.w, self.h)  # x, y, w, and h
+        self.took_dmg = False
 
     def draw(self, win):
         self.move()
@@ -91,60 +95,97 @@ class enemy(object):
             win.blit(self.go_left[self.walk_count % 2], (self.x, self.y))
             self.walk_count += 1
 
+        if self.took_dmg:   # If got hit
+            txt_surf, txt_rect = self.display_msg("OUCH!")
+            if self.walk_count > 20:        # Wait 20 frames before turning off flag
+                self.took_dmg = False       # Turn off the damage flag
+            win.blit(txt_surf, txt_rect)
 
-    def move(self):
-        if self.vel > 0:
+        self.hitbox = (self.x, self.y, self.w, self.h)  # This may be a bit redundant
+        pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
+
+    def move(self):                                     # Auto path for enemy to go on
+        if self.vel > 0:                                # Going to the right
             if self.x + self.vel < self.path[1]:
                 self.x += self.vel
             else:
-                self.vel = self.vel * -1
+                self.vel = self.vel * -1                # Switch directions
                 self.walk_count = 0
-        else:
+        else:                                           # Going to the left
             if self.x - self.vel > self.path[0]:
                 self.x += self.vel
             else:
-                self.vel = self.vel * -1
+                self.vel = self.vel * -1                # Switch directions
                 self.walk_count = 0
 
+    def take_dmg(self):
+        self.took_dmg = True
 
-def draw_window(Dino, bullets, Bird):
+    def display_msg(self, text):
+        output_txt = pygame.font.Font('freesansbold.ttf', 20)
+        txt_surf = output_txt.render(text, False, (0,0,0))
+        txt_rect = txt_surf.get_rect()
+        txt_rect.center = (self.x + 10, self.y - 10)
+
+        return txt_surf, txt_rect
+
+
+def draw_window(Dino, pellets, Bird):
     win.blit(bg, (0, 0))
     Dino.draw_char(win)  # Draws dino
     Bird.draw(win)
-    for bullet in bullets:  # Draws fireballs
-        bullet.draw(win)
+    for pellet in pellets:  # Draws fireballs
+        pellet.draw(win)
     pygame.display.update()
 
 
 if __name__ == "__main__":
-    DINO = player(50, 425, 40, 60)
+    DINO = player(50, 425, 45, 52)
     BIRD = enemy(100, 425, 46, 42, 500)
-    bullets = []
+    pellets = []
+    pellet_cooldown = 0
 
     run = True
     while run:
         clock.tick(30)  # Fps
 
+        if pellet_cooldown > 0:
+            pellet_cooldown += 1
+        if pellet_cooldown > 3:
+            pellet_cooldown = 0
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
 
-        for bullet in bullets:
-            if bullet.x < screen_width and bullet.x > 0:
-                bullet.x += bullet.vel
+        for pellet in pellets:
+            # Within the hitbox y coords
+            if pellet.y - pellet.radius < BIRD.hitbox[1] + BIRD.hitbox[3]:
+                if pellet.y + pellet.radius > BIRD.hitbox[1]:
+                    # Within hitbox x coords
+                    if pellet.x + pellet.radius > BIRD.hitbox[0]:
+                        if pellet.x - pellet.radius < BIRD.hitbox[0] + BIRD.hitbox[2]:
+                            # Bird takes damage
+                            BIRD.take_dmg()
+                            # Pellet removed from screen
+                            pellets.pop(pellets.index(pellet))
+
+            if pellet.x < screen_width and pellet.x > 0:
+                pellet.x += pellet.vel
             else:
-                bullets.pop(bullets.index(bullet))
+                pellets.pop(pellets.index(pellet))
 
         keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_SPACE]:
+        if keys[pygame.K_SPACE] and pellet_cooldown == 0:
             if DINO.face_LR:  # Facing right
                 facing = 1
             else:
                 facing = -1
-            if len(bullets) < 20:
-                bullets.append(
-                    fire_ball(round(DINO.x + DINO.w // 2), round(DINO.y + DINO.h // 2), 6, (255, 0, 0), facing))
+            if len(pellets) < 20:
+                pellets.append(
+                    projectile(round(DINO.x + DINO.w // 2), round(DINO.y + DINO.h // 2), 6, (255, 0, 0), facing))
+            pellet_cooldown = 1
 
         if keys[pygame.K_LEFT] and DINO.x > DINO.vel:
             DINO.x -= DINO.vel
@@ -161,7 +202,7 @@ if __name__ == "__main__":
             DINO.left = False
             DINO.walk_count = 0
 
-        if not (DINO.jumping):
+        if not DINO.jumping:
             if keys[pygame.K_UP]:
                 DINO.jumping = True
                 DINO.right = False
@@ -178,6 +219,6 @@ if __name__ == "__main__":
                 DINO.jumping = False
                 DINO.jump_height = 10
 
-        draw_window(DINO, bullets, BIRD)
+        draw_window(DINO, pellets, BIRD)
 
 pygame.quit()
