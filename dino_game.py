@@ -9,6 +9,7 @@ pygame.init()
 
 screen_width = 800
 screen_height = 500
+score = 0
 win = pygame.display.set_mode((screen_width, screen_height))
 
 walk_right = [pygame.image.load('R_base.png'), pygame.image.load('R2_base.png')]
@@ -82,27 +83,33 @@ class enemy(object):
         self.walk_count = 0
         self.hitbox = (self.x, self.y, self.w, self.h)  # x, y, w, and h
         self.took_dmg = False
+        self.health = 9
+        self.alive = True
 
     def draw(self, win):
         self.move()
-        if self.walk_count + 1 >= 30:
-            self.walk_count = 0
+        if self.alive:                              # Draw enemy if alive
+            if self.walk_count + 1 >= 30:
+                self.walk_count = 0
 
-        if self.vel > 0:    # moving right
-            win.blit(self.go_right[self.walk_count % 2], (self.x, self.y))
-            self.walk_count += 1
-        else:
-            win.blit(self.go_left[self.walk_count % 2], (self.x, self.y))
-            self.walk_count += 1
+            if self.vel > 0:    # moving right
+                win.blit(self.go_right[self.walk_count % 2], (self.x, self.y))
+                self.walk_count += 1
+            else:
+                win.blit(self.go_left[self.walk_count % 2], (self.x, self.y))
+                self.walk_count += 1
 
-        if self.took_dmg:   # If got hit
-            txt_surf, txt_rect = self.display_msg("OUCH!")
-            if self.walk_count > 20:        # Wait 20 frames before turning off flag
-                self.took_dmg = False       # Turn off the damage flag
-            win.blit(txt_surf, txt_rect)
+            if self.took_dmg:   # If got hit
+                txt_surf, txt_rect = self.display_msg("OUCH!")
+                if self.walk_count > 20:        # Wait 20 frames before turning off flag
+                    self.took_dmg = False       # Turn off the damage flag
+                win.blit(txt_surf, txt_rect)
 
-        self.hitbox = (self.x, self.y, self.w, self.h)  # This may be a bit redundant
-        pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
+            self.hitbox = (self.x, self.y, self.w, self.h)  # This may be a bit redundant
+            pygame.draw.rect(win, (255, 0, 0), (self.x, self.y - 20, 45, 10))
+            pygame.draw.rect(win, (0, 255, 0), (self.x, self.y - 20, 5 * self.health, 10))
+
+            pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
 
     def move(self):                                     # Auto path for enemy to go on
         if self.vel > 0:                                # Going to the right
@@ -120,18 +127,24 @@ class enemy(object):
 
     def take_dmg(self):
         self.took_dmg = True
+        if self.health > 0:     # Not Dead
+            self.health -= 1
+        else:
+            self.alive = False  # It Dead.
 
     def display_msg(self, text):
-        output_txt = pygame.font.Font('freesansbold.ttf', 20)
+        output_txt = pygame.font.SysFont('freesansbold.ttf', 20, True)
         txt_surf = output_txt.render(text, False, (0,0,0))
         txt_rect = txt_surf.get_rect()
-        txt_rect.center = (self.x + 10, self.y - 10)
+        txt_rect.center = (self.x + 10, self.y - 30)
 
         return txt_surf, txt_rect
 
 
-def draw_window(Dino, pellets, Bird):
+def draw_window(font, Dino, pellets, Bird):
     win.blit(bg, (0, 0))
+    text = font.render("SCORE: {}".format(score), True, (255, 0, 0))      # Display score on screen
+    win.blit(text, (screen_width/20, screen_height/20))                 # Place the score
     Dino.draw_char(win)  # Draws dino
     Bird.draw(win)
     for pellet in pellets:  # Draws fireballs
@@ -140,6 +153,7 @@ def draw_window(Dino, pellets, Bird):
 
 
 if __name__ == "__main__":
+    font = pygame.font.SysFont('comicsansms', 40, True)     # Font to display on screen
     DINO = player(50, 425, 45, 52)
     BIRD = enemy(100, 425, 46, 42, 500)
     pellets = []
@@ -158,17 +172,20 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 run = False
 
+
         for pellet in pellets:
-            # Within the hitbox y coords
-            if pellet.y - pellet.radius < BIRD.hitbox[1] + BIRD.hitbox[3]:
-                if pellet.y + pellet.radius > BIRD.hitbox[1]:
-                    # Within hitbox x coords
-                    if pellet.x + pellet.radius > BIRD.hitbox[0]:
-                        if pellet.x - pellet.radius < BIRD.hitbox[0] + BIRD.hitbox[2]:
-                            # Bird takes damage
-                            BIRD.take_dmg()
-                            # Pellet removed from screen
-                            pellets.pop(pellets.index(pellet))
+            if BIRD.alive:
+                # Within the hitbox y coords
+                if pellet.y - pellet.radius < BIRD.hitbox[1] + BIRD.hitbox[3]:
+                    if pellet.y + pellet.radius > BIRD.hitbox[1]:
+                        # Within hitbox x coords
+                        if pellet.x + pellet.radius > BIRD.hitbox[0]:
+                            if pellet.x - pellet.radius < BIRD.hitbox[0] + BIRD.hitbox[2]:
+                                # Bird takes damage
+                                BIRD.take_dmg()
+                                score += 1
+                                # Pellet removed from screen
+                                pellets.pop(pellets.index(pellet))
 
             if pellet.x < screen_width and pellet.x > 0:
                 pellet.x += pellet.vel
@@ -219,6 +236,6 @@ if __name__ == "__main__":
                 DINO.jumping = False
                 DINO.jump_height = 10
 
-        draw_window(DINO, pellets, BIRD)
+        draw_window(font, DINO, pellets, BIRD)
 
 pygame.quit()
