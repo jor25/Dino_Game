@@ -10,6 +10,7 @@ pygame.init()
 screen_width = 800
 screen_height = 500
 score = 0
+
 win = pygame.display.set_mode((screen_width, screen_height))
 
 walk_right = [pygame.image.load('R_base.png'), pygame.image.load('R2_base.png')]
@@ -35,8 +36,11 @@ class player(object):
         self.face_LR = True  # True = Right, False = Left
         self.walk_count = 0
         self.hitbox = (self.x, self.y, self.w, self.h)  # x, y, w, and h
+        self.took_dmg = False
+        self.health = 3
+        self.alive = True
 
-    def draw_char(self, win):
+    def draw(self, win):
         if self.walk_count + 1 >= 30:
             self.walk_count = 0
 
@@ -54,6 +58,29 @@ class player(object):
         self.hitbox = (self.x, self.y, self.w, self.h)      # This may be a bit redundant
         pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
 
+    def take_dmg(self):
+        self.took_dmg = True
+        # Reset jump height if mid jump
+        if self.jumping:
+            self.jumping = False
+            self.jump_height = 10
+        # Reset spawn location
+        self.x = 50
+        self.y = 425
+        if self.health > 0:     # Not Dead
+            self.health -= 1
+        else:
+            self.alive = False  # It Dead.
+
+        pygame.display.update()
+        pause = 0
+        while pause < 100:
+            pygame.time.delay(10)
+            pause += 1
+            for event in pygame.event.get():     # If i try to do something while frozen
+                if event.type == pygame.QUIT:
+                    pause = 250
+                    pygame.quit()
 
 class projectile(object):
     def __init__(self, x, y, radius, color, facing):
@@ -143,10 +170,12 @@ class enemy(object):
 
 def draw_window(font, Dino, pellets, Bird):
     win.blit(bg, (0, 0))
-    text = font.render("SCORE: {}".format(score), True, (255, 0, 0))      # Display score on screen
-    win.blit(text, (screen_width/20, screen_height/20))                 # Place the score
-    Dino.draw_char(win)  # Draws dino
-    Bird.draw(win)
+    text_score = font.render("SCORE: {}".format(score), True, (255, 0, 0))          # Display score on screen
+    win.blit(text_score, (screen_width/20, screen_height * .02))                    # Place the score
+    text_lives = font.render("LIVES: {}".format(Dino.health), True, (255, 0, 0))          # Display score on screen
+    win.blit(text_lives, (screen_width/20, screen_height * .10))                    # Place the score
+    Dino.draw(win)          # Draws dino
+    Bird.draw(win)          # Draws bird
     for pellet in pellets:  # Draws fireballs
         pellet.draw(win)
     pygame.display.update()
@@ -155,7 +184,7 @@ def draw_window(font, Dino, pellets, Bird):
 if __name__ == "__main__":
     font = pygame.font.SysFont('comicsansms', 40, True)     # Font to display on screen
     DINO = player(50, 425, 45, 52)
-    BIRD = enemy(100, 425, 46, 42, 500)
+    BIRD = enemy(150, 425, 46, 42, 500)
     pellets = []
     pellet_cooldown = 0
 
@@ -171,6 +200,16 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+
+        if DINO.alive:
+            if DINO.y < BIRD.hitbox[1] + BIRD.hitbox[3]:
+                if DINO.y + DINO.h > BIRD.hitbox[1]:
+                    # Within hitbox x coords
+                    if DINO.x + DINO.w > BIRD.hitbox[0]:
+                        if DINO.x < BIRD.hitbox[0] + BIRD.hitbox[2]:
+                            # Bird takes damage
+                            DINO.take_dmg()
+                            score += 1
 
 
         for pellet in pellets:
