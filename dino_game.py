@@ -23,6 +23,7 @@ clock = pygame.time.Clock()
 
 class player(object):
     def __init__(self, x, y, w, h):
+        self.init_coord = (x, y, w, h)  # Initial coordinates
         self.x = x  # Location
         self.y = y  # Location
         self.w = w  # character width
@@ -45,16 +46,23 @@ class player(object):
             self.walk_count = 0
 
         if self.left:
-            win.blit(walk_left[self.walk_count % 2], (self.x, self.y))
+            # pygame.transform.scale(walk_left[self.walk_count % 2], (self.w + 20, self.h + 20)) # for scaling
+            win.blit(pygame.transform.scale(walk_left[self.walk_count % 2], (self.w, self.h)), (self.x, self.y))
+            #win.blit(walk_left[self.walk_count % 2], (self.x, self.y))
             self.walk_count += 1
         elif self.right:
-            win.blit(walk_right[self.walk_count % 2], (self.x, self.y))
+            win.blit(pygame.transform.scale(walk_right[self.walk_count % 2], (self.w, self.h)), (self.x, self.y))
+            #win.blit(walk_right[self.walk_count % 2], (self.x, self.y))
             self.walk_count += 1
         else:
             if self.face_LR:
-                win.blit(dino, (self.x, self.y))
+                #win.blit(dino, (self.x, self.y))
+                win.blit(pygame.transform.scale(dino, (self.w, self.h)), (self.x, self.y))
+
             else:
-                win.blit(dinoL, (self.x, self.y))
+                #win.blit(dinoL, (self.x, self.y))
+                win.blit(pygame.transform.scale(dinoL, (self.w, self.h)), (self.x, self.y))
+
         self.hitbox = (self.x, self.y, self.w, self.h)      # This may be a bit redundant
         pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
 
@@ -66,7 +74,7 @@ class player(object):
             self.jump_height = 10
         # Reset spawn location
         self.x = 50
-        self.y = 425
+        self.y = self.init_coord[1] - (self.h - self.init_coord[3]) #425
         if self.health > 0:     # Not Dead
             self.health -= 1
         else:
@@ -110,7 +118,7 @@ class enemy(object):
         self.walk_count = 0
         self.hitbox = (self.x, self.y, self.w, self.h)  # x, y, w, and h
         self.took_dmg = False
-        self.health = 9
+        self.health = 3
         self.alive = True
 
     def draw(self, win):
@@ -133,8 +141,8 @@ class enemy(object):
                 win.blit(txt_surf, txt_rect)
 
             self.hitbox = (self.x, self.y, self.w, self.h)  # This may be a bit redundant
-            pygame.draw.rect(win, (255, 0, 0), (self.x, self.y - 20, 45, 10))
-            pygame.draw.rect(win, (0, 255, 0), (self.x, self.y - 20, 5 * self.health, 10))
+            pygame.draw.rect(win, (255, 0, 0), (self.x, self.y - 20, 30, 10))
+            pygame.draw.rect(win, (0, 255, 0), (self.x, self.y - 20, 10 * self.health, 10))
 
             pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
 
@@ -168,8 +176,9 @@ class enemy(object):
         return txt_surf, txt_rect
 
 
-def draw_window(font, Dino, pellets, Bird):
-    win.blit(bg, (0, 0))
+def draw_window(font, Dino, pellets, Bird, mv_bg):
+    win.blit(bg, (-mv_bg, 0))                       # Looping background
+    win.blit(bg, (-mv_bg + screen_width, 0))
     text_score = font.render("SCORE: {}".format(score), True, (255, 0, 0))          # Display score on screen
     win.blit(text_score, (screen_width/20, screen_height * .02))                    # Place the score
     text_lives = font.render("LIVES: {}".format(Dino.health), True, (255, 0, 0))          # Display score on screen
@@ -184,9 +193,16 @@ def draw_window(font, Dino, pellets, Bird):
 if __name__ == "__main__":
     font = pygame.font.SysFont('comicsansms', 40, True)     # Font to display on screen
     DINO = player(50, 425, 45, 52)
+    BIRDS = []
     BIRD = enemy(150, 425, 46, 42, 500)
     pellets = []
     pellet_cooldown = 0
+    moving_bg = 0
+
+    for i in range(10):
+        BIRDS.append(enemy(150 + i * 10, 425 - i * 10, 46, 42, 500 + i * 10))
+
+    b_num = 0   # Bird number - goes up to 3?
 
     run = True
     while run:
@@ -201,27 +217,33 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 run = False
 
-        if DINO.alive:
-            if DINO.y < BIRD.hitbox[1] + BIRD.hitbox[3]:
-                if DINO.y + DINO.h > BIRD.hitbox[1]:
+        if DINO.alive and BIRDS[b_num].alive:
+            if DINO.y < BIRDS[b_num].hitbox[1] + BIRDS[b_num].hitbox[3]:
+                if DINO.y + DINO.h > BIRDS[b_num].hitbox[1]:
                     # Within hitbox x coords
-                    if DINO.x + DINO.w > BIRD.hitbox[0]:
-                        if DINO.x < BIRD.hitbox[0] + BIRD.hitbox[2]:
+                    if DINO.x + DINO.w > BIRDS[b_num].hitbox[0]:
+                        if DINO.x < BIRDS[b_num].hitbox[0] + BIRDS[b_num].hitbox[2]:
                             # Bird takes damage
                             DINO.take_dmg()
                             score += 1
+        elif not BIRDS[b_num].alive:
+            if b_num < 9:
+                DINO.y = int(DINO.y - (DINO.h * .1))
+                DINO.w = int(DINO.w * 1.1)
+                DINO.h = int(DINO.h * 1.1)
+                b_num = (b_num + 1) % 10  # go to next bird?
 
 
         for pellet in pellets:
-            if BIRD.alive:
+            if BIRDS[b_num].alive:
                 # Within the hitbox y coords
-                if pellet.y - pellet.radius < BIRD.hitbox[1] + BIRD.hitbox[3]:
-                    if pellet.y + pellet.radius > BIRD.hitbox[1]:
+                if pellet.y - pellet.radius < BIRDS[b_num].hitbox[1] + BIRDS[b_num].hitbox[3]:
+                    if pellet.y + pellet.radius > BIRDS[b_num].hitbox[1]:
                         # Within hitbox x coords
-                        if pellet.x + pellet.radius > BIRD.hitbox[0]:
-                            if pellet.x - pellet.radius < BIRD.hitbox[0] + BIRD.hitbox[2]:
+                        if pellet.x + pellet.radius > BIRDS[b_num].hitbox[0]:
+                            if pellet.x - pellet.radius < BIRDS[b_num].hitbox[0] + BIRDS[b_num].hitbox[2]:
                                 # Bird takes damage
-                                BIRD.take_dmg()
+                                BIRDS[b_num].take_dmg()
                                 score += 1
                                 # Pellet removed from screen
                                 pellets.pop(pellets.index(pellet))
@@ -275,6 +297,9 @@ if __name__ == "__main__":
                 DINO.jumping = False
                 DINO.jump_height = 10
 
-        draw_window(font, DINO, pellets, BIRD)
+        moving_bg += 5                      # Increment background image
+        if moving_bg > screen_width:        # Reset background image
+            moving_bg = 0
+        draw_window(font, DINO, pellets, BIRDS[b_num], moving_bg)
 
 pygame.quit()
