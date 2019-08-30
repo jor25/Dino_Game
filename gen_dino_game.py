@@ -22,6 +22,7 @@ dinoL = pygame.image.load('baseL.png')
 
 clock = pygame.time.Clock()
 
+
 class game(object):
     def __init__(self, screen_width, screen_height, enemies):
         pygame.display.set_caption('Gen Dino Game')                                 # Game caption
@@ -53,36 +54,31 @@ class player(object):
         self.walk_count = 0
         self.hitbox = (self.x, self.y, self.w, self.h)      # x, y, w, and h
         self.took_dmg = False
-        self.health = 3
+        self.health = 0
         self.alive = True
+
 
     def draw(self, win):
         if self.walk_count + 1 >= 30:
             self.walk_count = 0
 
         if self.left:
-            # pygame.transform.scale(walk_left[self.walk_count % 2], (self.w + 20, self.h + 20)) # for scaling
             win.blit(pygame.transform.scale(walk_left[self.walk_count % 2], (self.w, self.h)), (self.x, self.y))
-            #win.blit(walk_left[self.walk_count % 2], (self.x, self.y))
-            #self.walk_count += 1
+
         elif self.right:
             win.blit(pygame.transform.scale(walk_right[self.walk_count % 2], (self.w, self.h)), (self.x, self.y))
-            #win.blit(walk_right[self.walk_count % 2], (self.x, self.y))
-            #self.walk_count += 1
+
         else:
             if self.face_LR:
-                #win.blit(dino, (self.x, self.y))
-                #win.blit(pygame.transform.scale(dino, (self.w, self.h)), (self.x, self.y))
                 win.blit(pygame.transform.scale(walk_right[self.walk_count % 2], (self.w, self.h)), (self.x, self.y))
 
             else:
-                #win.blit(dinoL, (self.x, self.y))
-                #win.blit(pygame.transform.scale(dinoL, (self.w, self.h)), (self.x, self.y))
                 win.blit(pygame.transform.scale(walk_left[self.walk_count % 2], (self.w, self.h)), (self.x, self.y))
         self.walk_count += 1
 
         self.hitbox = (self.x, self.y, self.w, self.h)      # This may be a bit redundant
         pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
+
 
     def take_dmg(self):
         self.took_dmg = True
@@ -107,6 +103,7 @@ class player(object):
                 if event.type == pygame.QUIT:
                     pause = 250
                     pygame.quit()
+
 
 class projectile(object):
     def __init__(self, x, y, radius, color, facing):
@@ -133,7 +130,7 @@ class enemy(object):
         self.h = h  # Character height
         self.end = end  # Point to turn around
         self.path = [self.x, self.end]
-        self.vel = 10
+        self.vel = 5
         self.direction = -1
         self.walk_count = 0
         self.hitbox = (self.x, self.y, self.w, self.h)  # x, y, w, and h
@@ -174,25 +171,8 @@ class enemy(object):
                 #
                 if self.alive:
                     self.alive = False                  # Make a bird disappear
-                '''
-                else:
-                    self.alive = True
-                    self.x = self.init_coord[0]        # Restart bird at start
-                '''
-        '''
-        if self.vel > 0:                                # Going to the right
-            if self.x + self.vel < self.path[1]:
-                self.x += self.vel
-            else:
-                self.vel = self.vel * -1                # Switch directions
-                self.walk_count = 0
-        else:                                           # Going to the left
-            if self.x - self.vel > self.path[0]:
-                self.x += self.vel
-            else:
-                self.vel = self.vel * -1                # Switch directions
-                self.walk_count = 0
-        '''
+
+
 
 
     def take_dmg(self):
@@ -220,15 +200,15 @@ def draw_window(font, Game, Dino, pellets, Birds, mv_bg):
     Game.window.blit(text_lives, (Game.screen_width/20, Game.screen_height * .10))                    # Place the score
     Dino.draw(Game.window)          # Draws dino
 
-    #'''
+
     for bird in Birds:
         bird.draw(Game.window)          # Draws bird
-    #'''
-    #Birds[random.randint(0, 2)].draw(Game.window)
+
 
     for pellet in pellets:  # Draws fireballs
         pellet.draw(Game.window)
     pygame.display.update()
+
 
 
 if __name__ == "__main__":
@@ -241,17 +221,14 @@ if __name__ == "__main__":
     GAME = game(G_screen_width, G_screen_height, BIRDS)
     DINO = GAME.player #player(50, 425, 45, 52)
 
-    #BIRD = enemy(150, 425, 46, 42, 500)
+
     pellets = []
     pellet_cooldown = 0
     moving_bg = 0
 
 
 
-    #b_num = 0   # Bird number - goes up to 3?
-
-    run = True
-    while run:
+    while not GAME.crash:
         clock.tick(30)  # Fps
         keys = pygame.key.get_pressed()
 
@@ -265,7 +242,7 @@ if __name__ == "__main__":
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
+                GAME.crash = True
 
         for BIRD in BIRDS:
             if DINO.alive and BIRD.alive:
@@ -274,55 +251,19 @@ if __name__ == "__main__":
                         # Within hitbox x coords
                         if DINO.x + DINO.w > BIRD.hitbox[0]:
                             if DINO.x < BIRD.hitbox[0] + BIRD.hitbox[2]:
-                                # Bird takes damage
-                                DINO.take_dmg()
-                                #GAME.score += 1
-            elif not BIRD.alive:
-                #if b_num < 9:
-                #DINO.y = int(DINO.y - (DINO.h * .1))
-                #DINO.w = int(DINO.w * 1.1)
-                #DINO.h = int(DINO.h * 1.1)
-                #b_num = (b_num + 1) % 6  # go to next bird?
+                                DINO.take_dmg()                             # When dino collides with bird
+
+            elif not BIRD.alive:                # When a bird dies, pop it from list and + score
                 GAME.score += 100
                 BIRDS.pop(BIRDS.index(BIRD))
-                #         BIRD.alive = True
+
+            elif not DINO.alive:                # When dino out of lives
+                GAME.crash = True               # Died - game over - shut down
 
 
 
-        '''
-        for pellet in pellets:
-            if BIRDS[b_num].alive:
-                # Within the hitbox y coords
-                if pellet.y - pellet.radius < BIRDS[b_num].hitbox[1] + BIRDS[b_num].hitbox[3]:
-                    if pellet.y + pellet.radius > BIRDS[b_num].hitbox[1]:
-                        # Within hitbox x coords
-                        if pellet.x + pellet.radius > BIRDS[b_num].hitbox[0]:
-                            if pellet.x - pellet.radius < BIRDS[b_num].hitbox[0] + BIRDS[b_num].hitbox[2]:
-                                # Bird takes damage
-                                BIRDS[b_num].take_dmg()
-                                GAME.score += 1
-                                # Pellet removed from screen
-                                pellets.pop(pellets.index(pellet))
 
-            if pellet.x < GAME.screen_width and pellet.x > 0:
-                pellet.x += pellet.vel
-            else:
-                pellets.pop(pellets.index(pellet))
-        #'''
-
-
-        '''
-        if keys[pygame.K_SPACE] and pellet_cooldown == 0:
-            if DINO.face_LR:  # Facing right
-                facing = 1
-            else:
-                facing = -1
-            if len(pellets) < 20:
-                pellets.append(
-                    projectile(round(DINO.x + DINO.w // 2), round(DINO.y + DINO.h // 2), 6, (255, 0, 0), facing))
-            pellet_cooldown = 1
-        #'''
-
+        # Dino making moves here
         if keys[pygame.K_LEFT] and DINO.x > DINO.vel:       # Hit the left wall
             DINO.x -= DINO.vel
             DINO.left = True
@@ -336,7 +277,7 @@ if __name__ == "__main__":
         else:                                                   # Standing Still
             DINO.right = False
             DINO.left = False
-            #DINO.walk_count = 0                                # Resets and keep frame frozen
+
 
         if not DINO.jumping:
             if keys[pygame.K_UP]:
@@ -360,4 +301,6 @@ if __name__ == "__main__":
             moving_bg = 0
         draw_window(font, GAME, DINO, pellets, BIRDS, moving_bg)
 
-pygame.quit()
+
+    # Quit when exiting loop
+    pygame.quit()
