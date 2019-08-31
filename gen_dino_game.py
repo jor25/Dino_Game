@@ -15,12 +15,20 @@ G_screen_height = 500
 
 
 walk_right = [pygame.image.load('R_base.png'), pygame.image.load('R2_base.png')]
-walk_left = [pygame.image.load('L_base.png'), pygame.image.load('L2_base.png')]
+#walk_left = [pygame.image.load('L_base.png'), pygame.image.load('L2_base.png')]
+
+bird_sprite = [pygame.image.load('bird_L1.png'), pygame.image.load('bird_L2.png')]
+
+cactus_sprite = [pygame.image.load('cactus_1.png')]
+
 
 dino = pygame.image.load('base.png')
 dinoL = pygame.image.load('baseL.png')
 
 clock = pygame.time.Clock()
+
+
+
 
 
 class game(object):
@@ -63,7 +71,9 @@ class player(object):
             self.walk_count = 0
 
         if self.left:
-            win.blit(pygame.transform.scale(walk_left[self.walk_count % 2], (self.w, self.h)), (self.x, self.y))
+            win.blit(pygame.transform.flip(
+                (pygame.transform.scale(walk_right[self.walk_count % 2], (self.w, self.h))),
+                True, False), (self.x, self.y))
 
         elif self.right:
             win.blit(pygame.transform.scale(walk_right[self.walk_count % 2], (self.w, self.h)), (self.x, self.y))
@@ -73,10 +83,12 @@ class player(object):
                 win.blit(pygame.transform.scale(walk_right[self.walk_count % 2], (self.w, self.h)), (self.x, self.y))
 
             else:
-                win.blit(pygame.transform.scale(walk_left[self.walk_count % 2], (self.w, self.h)), (self.x, self.y))
+                win.blit(pygame.transform.flip(
+                    (pygame.transform.scale(walk_right[self.walk_count % 2], (self.w, self.h))),
+                    True, False), (self.x, self.y))
         self.walk_count += 1
 
-        self.hitbox = (self.x, self.y, self.w, self.h)      # This may be a bit redundant
+        self.hitbox = (self.x+2, self.y+2, self.w-3, self.h-3)      # This may be a bit redundant
         pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
 
 
@@ -119,10 +131,10 @@ class projectile(object):
 
 
 class enemy(object):
-    go_right = [pygame.image.load('bird_R1.png'), pygame.image.load('bird_R2.png')]
-    go_left = [pygame.image.load('bird_L1.png'), pygame.image.load('bird_L2.png')]
+    #go_right = [pygame.image.load('bird_R1.png'), pygame.image.load('bird_R2.png')]
+    #go_left = [pygame.image.load('bird_L1.png'), pygame.image.load('bird_L2.png')]
 
-    def __init__(self, x, y, w, h, end):
+    def __init__(self, x, y, w, h, end, enemy_sprite):
         self.init_coord = (x, y, w, h)  # Initial coordinates
         self.x = x  # x coordinate
         self.y = y  # y coordinate
@@ -137,6 +149,7 @@ class enemy(object):
         self.took_dmg = False
         self.health = 1
         self.alive = True
+        self.enemy_sprite = enemy_sprite
 
     def draw(self, win):
         self.move()
@@ -145,10 +158,10 @@ class enemy(object):
                 self.walk_count = 0
 
             if self.vel < 0:    # moving left
-                win.blit(self.go_right[self.walk_count % 2], (self.x, self.y))
+                win.blit(pygame.transform.flip(pygame.transform.scale(self.enemy_sprite[self.walk_count % len(self.enemy_sprite)], (self.w, self.h)), True, False), (self.x, self.y))
                 self.walk_count += 1
             else:
-                win.blit(self.go_left[self.walk_count % 2], (self.x, self.y))
+                win.blit(pygame.transform.scale(self.enemy_sprite[self.walk_count % len(self.enemy_sprite)], (self.w, self.h)), (self.x, self.y))
                 self.walk_count += 1
 
             if self.took_dmg:   # If got hit
@@ -171,8 +184,6 @@ class enemy(object):
                 #
                 if self.alive:
                     self.alive = False                  # Make a bird disappear
-
-
 
 
     def take_dmg(self):
@@ -215,12 +226,14 @@ if __name__ == "__main__":
     font = pygame.font.SysFont('comicsansms', 40, True)     # Font to display on screen
 
     BIRDS = []
-    for i in range(6):
-        BIRDS.append(enemy(G_screen_width + i * random.randint(200, 800), 440 - (i % 3) * 70, 46, 42, 0 - 42))
+
 
     GAME = game(G_screen_width, G_screen_height, BIRDS)
     DINO = GAME.player #player(50, 425, 45, 52)
 
+    cact_w = [25, 35, 45]
+    cact_h = [50, 70, 100]
+    cact_y = [420, 400, 370]
 
     pellets = []
     pellet_cooldown = 0
@@ -233,7 +246,11 @@ if __name__ == "__main__":
         keys = pygame.key.get_pressed()
 
         if len(BIRDS) < GAME.max_enemies:
-            BIRDS.append(enemy(G_screen_width + random.randint(200, 800), 440 - (random.randint(0, 2)) * 70, 46, 42, 0 - 42))
+            index = random.randint(0, 3) % 3
+            if index == 0:   # about 1/3 times we get a bird
+                BIRDS.append(enemy(G_screen_width + random.randint(200, 800), 440 - (random.randint(0, 2)) * 70, 46, 42, -42, bird_sprite))
+            else:
+                BIRDS.append(enemy(G_screen_width + random.randint(200, 800), cact_y[index], cact_w[index], cact_h[index], -42, cactus_sprite))
 
         if pellet_cooldown > 0:
             pellet_cooldown += 1
