@@ -172,59 +172,32 @@ class DQL_AI(object):
         self.reward = 0
 
         if game.got_dodge_points:
-            self.reward = 20  # * game.dodge_points
+            self.reward = 5  # * game.dodge_points
             game.got_dodge_points = False
-        '''
-        if game.got_points:
-            self.reward += 2
-            game.got_points = False
-        '''
-        '''
+            #print(self.reward)         # good for debug
+
         if game.got_walk_points:
-            self.reward = 1
+            self.reward = 1  # * game.dodge_points
             game.got_walk_points = False
-        #'''
+            #print(self.reward)         # good for debug
+
 
         if crash:
-            '''
-            if game.score > record:
-                self.reward += 10
-            elif game.score > record * .7 and game.score < record:
-                self.reward += 10
-            else:
-                self.reward -= 20
-            #'''
-
             self.reward = -10
-            if player.jumping:
-                self.reward = -15
             return self.reward
 
-            #self.total_reward += self.reward
-            #return self.reward
-
-
-            #print(game.dodge_points)
-
-        #if player.jump_height < -10:
-        #    self.reward -= 1
-
-
-        #self.total_reward += self.reward
         return self.reward
 
-        #self.total_reward += self.reward
-        #return self.reward
 
     def network(self, weights=None):
         model = Sequential()
-        model.add(Dense(output_dim=200, activation='relu', input_dim=29))        # max 144
+        model.add(Dense(output_dim=225, activation='relu', input_dim=29))        # max 144
         model.add(Dropout(0.15))
-        model.add(Dense(output_dim=230, activation='relu'))
+        model.add(Dense(output_dim=320, activation='relu'))
         model.add(Dropout(0.15))
-        model.add(Dense(output_dim=260, activation='relu'))
+        model.add(Dense(output_dim=385, activation='relu'))
         model.add(Dropout(0.15))
-        model.add(Dense(output_dim=290, activation='relu'))
+        model.add(Dense(output_dim=335, activation='relu'))
         model.add(Dropout(0.15))
 
         model.add(Dense(output_dim=4, activation='softmax'))
@@ -250,7 +223,7 @@ class DQL_AI(object):
                 target = reward + self.gamma * np.amax(self.model.predict(np.array([next_state]))[0])
             target_f = self.model.predict(np.array([state]))
             target_f[0][np.argmax(action)] = target
-            #print(target)
+            #print(target_f)
             self.model.fit(np.array([state]), target_f, epochs=1, verbose=0)
 
     def train_short_memory(self, state, action, reward, next_state, done):

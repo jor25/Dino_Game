@@ -106,33 +106,6 @@ class player(object):
     # Don't really need this function of generic game
     def take_dmg(self):
         self.alive = False
-        '''
-        self.took_dmg = True
-        # Reset jump height if mid jump
-        if self.jumping:
-            self.jumping = False
-            self.jump_height = 10
-        # Reset spawn location
-        #self.x = 50
-        #self.y = self.init_coord[1] - (self.h - self.init_coord[3]) #425
-        
-        if self.health > 0:     # Not Dead
-            self.health -= 1
-        else:
-            self.alive = False  # It Dead.
-
-        pygame.display.update()
-        '''
-        '''
-        pause = 0
-        while pause < 100:
-            pygame.time.delay(10)
-            pause += 1
-            for event in pygame.event.get():     # If i try to do something while frozen
-                if event.type == pygame.QUIT:
-                    pause = 250
-                    pygame.quit()
-        '''
 
     # Do a jump
     def do_jump(self):
@@ -168,10 +141,6 @@ class player(object):
             self.left = True
             self.right = False
             self.do_jump()
-            '''
-            if self.y != 425:        # if mid jump - continue with the physics
-
-            '''
 
         if np.array_equal(move, [0,0,1,0]):                             # Move right
             if self.x < game.screen_width - (self.w + self.vel):        # Within the right wall
@@ -179,10 +148,7 @@ class player(object):
             self.right = True
             self.left = False
             self.do_jump()
-            '''
-            if self.y != 425:         # if mid jump - continue with the physics
 
-            '''
         #'''
         # It does this for EVERY frame in the loop, need to complete the jump before can move...
         if np.array_equal(move, [0,0,0,1]):
@@ -192,9 +158,7 @@ class player(object):
             else:
                 self.do_jump()      # Jumping
 
-
-
-
+    # Displays the recent move
     def display_msg(self, text):
         output_txt = pygame.font.SysFont('freesansbold.ttf', 20, True)
         txt_surf = output_txt.render(text, False, (0,0,0))
@@ -353,7 +317,7 @@ if __name__ == "__main__":
     record = 0
 
 
-    while counter_games < 200: #150
+    while counter_games < 2000: #150
         #counter_games += 1
         BIRDS = []
         GAME = game(G_screen_width, G_screen_height, BIRDS)
@@ -493,11 +457,13 @@ if __name__ == "__main__":
             if moving_bg > GAME.screen_width:               # Reset background image
                 moving_bg = 0
 
-            draw_window(font, GAME, DINO, pellets, BIRDS, moving_bg, record, final_move)
+            # Comment in when you want to see dino jumping
+            #draw_window(font, GAME, DINO, pellets, BIRDS, moving_bg, record, final_move)
             #print("dino.x = {}, dino.y ={}".format(DINO.x, DINO.y))
         test_ai.replay_new(test_ai.memory)
         counter_games += 1
-        print('Game', counter_games, '      Score:', GAME.score, '      Record:', record, '      Dodge Points', GAME.dodge_points)
+        print('Game', counter_games, '      Score:', GAME.score, '      Record:', record,
+              '      Dodge Points', GAME.dodge_points, '    Walk Points', walk_points)
 
         game_num.append(counter_games)
         game_scores.append(GAME.score)
