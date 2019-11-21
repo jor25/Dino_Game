@@ -12,6 +12,7 @@ import numpy as np
 from keras.utils import to_categorical
 import matplotlib.pyplot as plt
 import seaborn as sb
+import user_active as UA
 
 pygame.init()
 
@@ -142,23 +143,25 @@ class player(object):
                 self.x -= self.vel
             self.left = True
             self.right = False
-            self.do_jump()
+            if self.jumping:
+                self.do_jump()
 
         if np.array_equal(move, [0,0,1,0]):                             # Move right
             if self.x < game.screen_width - (self.w + self.vel):        # Within the right wall
                 self.x += self.vel
             self.right = True
             self.left = False
-            self.do_jump()
+            if self.jumping:
+                self.do_jump()
 
         #'''
         # It does this for EVERY frame in the loop, need to complete the jump before can move...
         if np.array_equal(move, [0,0,0,1]):
             if not self.jumping:
                 self.jumping = True
-
-            else:
                 self.do_jump()      # Jumping
+            #else:
+            #    self.do_jump()      # Jumping
 
     # Displays the recent move
     def display_msg(self, text):
@@ -414,7 +417,11 @@ if __name__ == "__main__":
                 #GAME.score += 1
                 GAME.got_walk_points = True
 
-
+            '''
+            final_move = UA.active_player(DINO)
+            print("{}\t{}".format(final_move, DINO.jumping))
+            DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
+            #'''
             #'''
             # THE AI SECTION BELOW
 
@@ -440,7 +447,7 @@ if __name__ == "__main__":
                 final_move = to_categorical(np.argmax(prediction[0]), num_classes=4)
                 #print(final_move)
 
-            #print(final_move)
+            print(final_move)
 
             DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
             state_new = test_ai.get_state(GAME, DINO, BIRDS)
