@@ -191,13 +191,9 @@ class DQL_AI(object):
 
     def network(self, weights=None):
         model = Sequential()
-        model.add(Dense(output_dim=225, activation='relu', input_dim=29))        # max 144
+        model.add(Dense(output_dim=20, activation='relu', input_dim=29))        # max 144
         model.add(Dropout(0.15))
-        model.add(Dense(output_dim=320, activation='relu'))
-        model.add(Dropout(0.15))
-        model.add(Dense(output_dim=385, activation='relu'))
-        model.add(Dropout(0.15))
-        model.add(Dense(output_dim=335, activation='relu'))
+        model.add(Dense(output_dim=20, activation='relu'))
         model.add(Dropout(0.15))
 
         model.add(Dense(output_dim=4, activation='softmax'))
