@@ -13,11 +13,11 @@ score = 0
 
 win = pygame.display.set_mode((screen_width, screen_height))
 
-walk_right = [pygame.image.load('R_base.png'), pygame.image.load('R2_base.png')]
-walk_left = [pygame.image.load('L_base.png'), pygame.image.load('L2_base.png')]
-bg = pygame.image.load('bg1.png')
-dino = pygame.image.load('base.png')
-dinoL = pygame.image.load('baseL.png')
+walk_right = [pygame.image.load('images/R_base.png'), pygame.image.load('images/R2_base.png')]
+walk_left = [pygame.image.load('images/L_base.png'), pygame.image.load('images/L2_base.png')]
+bg = pygame.image.load('images/bg1.png')
+dino = pygame.image.load('images/base.png')
+dinoL = pygame.image.load('images/baseL.png')
 clock = pygame.time.Clock()
 
 
@@ -104,8 +104,8 @@ class projectile(object):
 
 
 class enemy(object):
-    go_right = [pygame.image.load('bird_R1.png'), pygame.image.load('bird_R2.png')]
-    go_left = [pygame.image.load('bird_L1.png'), pygame.image.load('bird_L2.png')]
+    go_right = [pygame.image.load('images/bird_R1.png'), pygame.image.load('images/bird_R2.png')]
+    go_left = [pygame.image.load('images/bird_L1.png'), pygame.image.load('images/bird_L2.png')]
 
     def __init__(self, x, y, w, h, end):
         self.x = x  # x coordinate
@@ -206,7 +206,7 @@ if __name__ == "__main__":
 
     run = True
     while run:
-        clock.tick(30)  # Fps
+        clock.tick(80)  # Fps
 
         if pellet_cooldown > 0:
             pellet_cooldown += 1

@@ -18,10 +18,12 @@ pygame.init()
 G_screen_width = 800
 G_screen_height = 500
 
+# Viewing variable:
+view_training = True
 
-walk_right = [pygame.image.load('R_base1.png'), pygame.image.load('R_base2.png')]
-bird_sprite = [pygame.image.load('bird_L1.png'), pygame.image.load('bird_L2.png')]
-cactus_sprite = [pygame.image.load('cactus_1.png')]
+walk_right = [pygame.image.load('images/R_base.png'), pygame.image.load('images/R2_base.png')]
+bird_sprite = [pygame.image.load('images/bird_L1.png'), pygame.image.load('images/bird_L2.png')]
+cactus_sprite = [pygame.image.load('images/cactus_1.png')]
 
 clock = pygame.time.Clock()
 
@@ -35,7 +37,7 @@ class game(object):
         self.screen_width = screen_width                                            # Screen width
         self.screen_height = screen_height                                          # Screen height
         self.window = pygame.display.set_mode((screen_width, screen_height))        # Game window
-        self.bg = pygame.image.load('bg1.png')                                      # Background image
+        self.bg = pygame.image.load('images/bg1.png')                                      # Background image
         self.crash = False                                                          # Collision
         self.player = player(200, 425, 45, 52)                                      # Summon player class
         self.enemies = enemies                                                      # Summon list of enemies
@@ -341,7 +343,9 @@ if __name__ == "__main__":
 
 
         while not GAME.crash:
-            #clock.tick(500)  #30 # Fps # visible at fast on 100
+
+            if view_training:
+                clock.tick(500)  #30 # Fps # visible at fast on 100
             keys = pygame.key.get_pressed()
 
 
@@ -458,7 +462,8 @@ if __name__ == "__main__":
                 moving_bg = 0
 
             # Comment in when you want to see dino jumping
-            #draw_window(font, GAME, DINO, pellets, BIRDS, moving_bg, record, final_move)
+            if view_training:
+                draw_window(font, GAME, DINO, pellets, BIRDS, moving_bg, record, final_move)
             #print("dino.x = {}, dino.y ={}".format(DINO.x, DINO.y))
         test_ai.replay_new(test_ai.memory)
         counter_games += 1
