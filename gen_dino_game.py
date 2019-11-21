@@ -22,6 +22,9 @@ G_screen_height = 500
 # Viewing variable:
 view_training = True
 
+# Activate Human Player:
+human = False
+
 walk_right = [pygame.image.load('images/R_base.png'), pygame.image.load('images/R2_base.png')]
 bird_sprite = [pygame.image.load('images/bird_L1.png'), pygame.image.load('images/bird_L2.png')]
 cactus_sprite = [pygame.image.load('images/cactus_1.png')]
@@ -388,7 +391,7 @@ if __name__ == "__main__":
 
                 elif BIRD.x + BIRD.w < DINO.x and not BIRD.got_jumped:  # Successfully dodged enemy
                     BIRD.got_jumped = True
-                    GAME.score += 1
+                    GAME.score += 10
 
                     GAME.dodge_points += 1
                     GAME.got_dodge_points = True
@@ -417,48 +420,49 @@ if __name__ == "__main__":
                 #GAME.score += 1
                 GAME.got_walk_points = True
 
-            '''
-            final_move = UA.active_player(DINO)
-            print("{}\t{}".format(final_move, DINO.jumping))
-            DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
-            #'''
-            #'''
-            # THE AI SECTION BELOW
+            if human:
+                final_move = UA.active_player(DINO)
+                print("{}\t{}".format(final_move, DINO.jumping))
+                DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
 
-            test_ai.epsilon = 80 - counter_games                    # test_ai.epsilon is for random moves
-
-            state_old = test_ai.get_state(GAME, DINO, BIRDS)        # Get old state
-
-
-            if random.randint(0, 200) < test_ai.epsilon:                            # Do random moves based on test_ai.epsilon, or choose action with model
-                final_move = to_categorical(random.randint(0,3), num_classes=4)     # num_classes = categories
-                #print(final_move)
             else:
+                #'''
+                # THE AI SECTION BELOW
 
-                prediction = test_ai.model.predict(state_old.reshape((1, 29)))      # Make prediction for move based on the old state
-                #print(prediction)
-                #print(np.argmax(prediction[0]))
-                if not DINO.jumping and np.argmax(prediction[0]) == 3:              # Change prediction if jumping
-                    temp = np.argmax(prediction[0])
-                    prediction[0][temp] = 0
-                    #print("temp = ",to_categorical(temp[0][2], num_classes=4))
+                test_ai.epsilon = 80 - counter_games                    # test_ai.epsilon is for random moves
 
-                # Need to take the 2nd prediction if player is jumping
-                final_move = to_categorical(np.argmax(prediction[0]), num_classes=4)
-                #print(final_move)
+                state_old = test_ai.get_state(GAME, DINO, BIRDS)        # Get old state
 
-            print(final_move)
 
-            DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
-            state_new = test_ai.get_state(GAME, DINO, BIRDS)
+                if random.randint(0, 200) < test_ai.epsilon:                            # Do random moves based on test_ai.epsilon, or choose action with model
+                    final_move = to_categorical(random.randint(0,3), num_classes=4)     # num_classes = categories
+                    #print(final_move)
+                else:
 
-            reward = test_ai.set_reward(DINO, GAME, GAME.crash, record)                             # Set reward for new state
+                    prediction = test_ai.model.predict(state_old.reshape((1, 29)))      # Make prediction for move based on the old state
+                    #print(prediction)
+                    #print(np.argmax(prediction[0]))
+                    if not DINO.jumping and np.argmax(prediction[0]) == 3:              # Change prediction if jumping
+                        temp = np.argmax(prediction[0])
+                        prediction[0][temp] = 0
+                        #print("temp = ",to_categorical(temp[0][2], num_classes=4))
 
-            test_ai.train_short_memory(state_old, final_move, reward, state_new, GAME.crash)        # Train short memory base on new move and state
+                    # Need to take the 2nd prediction if player is jumping
+                    final_move = to_categorical(np.argmax(prediction[0]), num_classes=4)
+                    #print(final_move)
 
-            test_ai.remember(state_old, final_move, reward, state_new, GAME.crash)                  # Store new data into long term memory
-            record = get_record(GAME.score, record)
-            #'''
+                print(final_move)
+
+                DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
+                state_new = test_ai.get_state(GAME, DINO, BIRDS)
+
+                reward = test_ai.set_reward(DINO, GAME, GAME.crash, record)                             # Set reward for new state
+
+                test_ai.train_short_memory(state_old, final_move, reward, state_new, GAME.crash)        # Train short memory base on new move and state
+
+                test_ai.remember(state_old, final_move, reward, state_new, GAME.crash)                  # Store new data into long term memory
+                record = get_record(GAME.score, record)
+                #'''
 
             GAME.got_points = False         # Reset point indicator
             GAME.got_dodge_points = False
@@ -472,7 +476,8 @@ if __name__ == "__main__":
             if view_training:
                 draw_window(font, GAME, DINO, pellets, BIRDS, moving_bg, record, final_move)
             #print("dino.x = {}, dino.y ={}".format(DINO.x, DINO.y))
-        test_ai.replay_new(test_ai.memory)
+        if not human:
+            test_ai.replay_new(test_ai.memory)
         counter_games += 1
         print('Game', counter_games, '      Score:', GAME.score, '      Record:', record,
               '      Dodge Points', GAME.dodge_points, '    Walk Points', walk_points)
