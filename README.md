@@ -14,3 +14,4 @@
     pip install tensorflow
     pip install matplotlib
     pip install seaborn
+    pip install sklearn

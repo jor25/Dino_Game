@@ -15,20 +15,22 @@ from keras.layers.core import Dense, Dropout
 class Collection():
     def __init__(self):
         self.learning_rate = 0.001
-        self.model = self.network()
-        #self.model = self.network("Some_weights.hdf5")
+        #self.model = self.network()
+        self.model = self.network("model_files/nn_01.hdf5")
 
 
     def network(self, weights=None):
         model = Sequential()
-        model.add(Dense(output_dim=20, activation='relu', input_dim=20))        # max 144
+        model.add(Dense(output_dim=40, activation='relu', input_dim=20))        # max 144
         model.add(Dropout(0.15))
-        model.add(Dense(output_dim=20, activation='relu'))
+        model.add(Dense(output_dim=40, activation='relu'))
+        model.add(Dropout(0.15))
+        model.add(Dense(output_dim=40, activation='relu'))
         model.add(Dropout(0.15))
 
         model.add(Dense(output_dim=4, activation='softmax'))
         opt = Adam(self.learning_rate)
-        model.compile(loss='mse', optimizer=opt)
+        model.compile(loss='mse', metrics=['accuracy'], optimizer=opt)
 
         if weights:
             model.load_weights(weights)
@@ -51,9 +53,8 @@ def read_data(data_file="state_data/data.csv"):
     '''
     # Numpy read in my data - separate by comma, all ints.  
     data = np.loadtxt(data_file, delimiter=",", dtype=int)
-    num_p = len(data)
     
-    return data, num_p
+    return data
 
 
 def get_state(game, player, enemy, move):

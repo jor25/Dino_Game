@@ -24,7 +24,11 @@ G_screen_height = 500
 view_training = True
 
 # Activate Human Player:
-human = True
+human = False
+
+# Test Neural Net:
+neural = True
+nn = CS.Collection()
 
 walk_right = [pygame.image.load('images/R_base.png'), pygame.image.load('images/R2_base.png')]
 bird_sprite = [pygame.image.load('images/bird_L1.png'), pygame.image.load('images/bird_L2.png')]
@@ -163,9 +167,9 @@ class player(object):
         if np.array_equal(move, [0,0,0,1]):
             if not self.jumping:
                 self.jumping = True
+                #self.do_jump()      # Jumping
+            else:
                 self.do_jump()      # Jumping
-            #else:
-            #    self.do_jump()      # Jumping
 
     # Displays the recent move
     def display_msg(self, text):
@@ -433,6 +437,21 @@ if __name__ == "__main__":
                     label, state = CS.get_state(GAME, DINO, BIRD, final_move)  # Making some states
                     label_list.append(label)
                     states_list.append(state)
+
+            elif neural:
+
+                final_move = [0,0,0,1]
+                try:
+                    label, state = CS.get_state(GAME, DINO, BIRDS[0], final_move)  # Making some states
+                    npstate = np.asarray(state)
+                    restate = np.reshape(npstate, (-1,20))
+                    prediction = nn.model.predict(restate) 
+
+                    final_move = [0,0,0,0]
+                    final_move[np.argmax(prediction[0])] = 1
+                    DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
+                except:
+                    print ("NO BIRDS")
 
             else:
                 #'''
