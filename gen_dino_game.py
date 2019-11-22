@@ -325,6 +325,9 @@ if __name__ == "__main__":
     game_num = []
     record = 0
 
+    if human:
+        states_list = []
+        label_list = []
 
     while counter_games < 2000: #150
         #counter_games += 1
@@ -427,7 +430,9 @@ if __name__ == "__main__":
                 DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
                 
                 for BIRD in BIRDS:
-                    CS.get_state(GAME, DINO, BIRD, final_move)  # Making some states
+                    label, state = CS.get_state(GAME, DINO, BIRD, final_move)  # Making some states
+                    label_list.append(label)
+                    states_list.append(state)
 
             else:
                 #'''
@@ -482,6 +487,12 @@ if __name__ == "__main__":
             #print("dino.x = {}, dino.y ={}".format(DINO.x, DINO.y))
         if not human:
             test_ai.replay_new(test_ai.memory)
+        
+        else:   # Save run to file and quit before new run.
+            CS.write_data(states_list)
+            CS.write_data(label_list, "state_data/label")
+            print("QUIT NOOOWWW!!")
+
         counter_games += 1
         print('Game', counter_games, '      Score:', GAME.score, '      Record:', record,
               '      Dodge Points', GAME.dodge_points, '    Walk Points', walk_points)

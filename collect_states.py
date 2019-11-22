@@ -18,6 +18,44 @@ class Collection():
         self.model = self.network()
         #self.model = self.network("Some_weights.hdf5")
 
+
+    def network(self, weights=None):
+        model = Sequential()
+        model.add(Dense(output_dim=20, activation='relu', input_dim=20))        # max 144
+        model.add(Dropout(0.15))
+        model.add(Dense(output_dim=20, activation='relu'))
+        model.add(Dropout(0.15))
+
+        model.add(Dense(output_dim=4, activation='softmax'))
+        opt = Adam(self.learning_rate)
+        model.compile(loss='mse', optimizer=opt)
+
+        if weights:
+            model.load_weights(weights)
+            print("model loaded")
+        return model
+
+
+# https://stackoverflow.com/questions/6081008/dump-a-numpy-array-into-a-csv-file
+def write_data(data, file_name="state_data/data"):
+    np.savetxt("{}.csv".format(file_name), data, delimiter=",", fmt='%i')
+    print("DATA SAVED.")
+    pass
+
+
+def read_data(data_file="state_data/data.csv"):
+    ''' Read the csv file data into a 2d numpy array.
+        Give back 2d array and the number of instances.
+        ndarray data
+        int num_p
+    '''
+    # Numpy read in my data - separate by comma, all ints.  
+    data = np.loadtxt(data_file, delimiter=",", dtype=int)
+    num_p = len(data)
+    
+    return data, num_p
+
+
 def get_state(game, player, enemy, move):
     state = [
         # Am I on the ground or in the air
