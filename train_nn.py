@@ -15,7 +15,7 @@ if __name__ == "__main__":
     data = cs.read_data()       # Get the data
     labels = cs.read_data("state_data/label.csv")     # Get the labels
 
-    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, stratify=labels)
+    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.3, stratify=labels)
     print("\n\nData was split\n\n")
     print(X_train.shape)
 
@@ -32,9 +32,9 @@ if __name__ == "__main__":
     print ("Weights saved!")
 
 
-    jump_ex = [1,1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0]
+    jump_ex = [1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0]
     npjump = np.asarray(jump_ex)
-    re = np.reshape(npjump, (-1,20))
+    re = np.reshape(npjump, (-1,16))
     prediction = nn.model.predict( re )
     one_hot = [0,0,0,0]
     one_hot[np.argmax(prediction[0])] = 1

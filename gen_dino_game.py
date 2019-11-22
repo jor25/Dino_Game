@@ -434,24 +434,29 @@ if __name__ == "__main__":
                 DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
                 
                 for BIRD in BIRDS:
-                    label, state = CS.get_state(GAME, DINO, BIRD, final_move)  # Making some states
-                    label_list.append(label)
-                    states_list.append(state)
+                    if not np.array_equal(final_move, [1,0,0,0]) or walk_points % 100 == 0:
+                        label, state = CS.get_state(GAME, DINO, BIRD, final_move)  # Making some states
+                        label_list.append(label)
+                        states_list.append(state)
 
             elif neural:
 
-                final_move = [0,0,0,1]
+                final_move = [1,0,0,0]
                 try:
+                    #for BIRD in BIRDS:
                     label, state = CS.get_state(GAME, DINO, BIRDS[0], final_move)  # Making some states
                     npstate = np.asarray(state)
-                    restate = np.reshape(npstate, (-1,20))
+                    restate = np.reshape(npstate, (-1,16))
                     prediction = nn.model.predict(restate) 
-
+                    #print(prediction)
                     final_move = [0,0,0,0]
                     final_move[np.argmax(prediction[0])] = 1
+                    print(final_move)
+                    #final_move[random.randint(0,3)] = 1
                     DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
                 except:
-                    print ("NO BIRDS")
+                    #print ("NO BIRDS")
+                    DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
 
             else:
                 #'''
@@ -508,8 +513,11 @@ if __name__ == "__main__":
             test_ai.replay_new(test_ai.memory)
         
         else:   # Save run to file and quit before new run.
-            CS.write_data(states_list)
-            CS.write_data(label_list, "state_data/label")
+            #CS.write_data(states_list)
+            #CS.write_data(label_list, "state_data/label")
+
+            CS.append_data(states_list)
+            CS.append_data(label_list, "state_data/label")
             print("QUIT NOOOWWW!!")
 
         counter_games += 1

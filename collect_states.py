@@ -15,13 +15,13 @@ from keras.layers.core import Dense, Dropout
 class Collection():
     def __init__(self):
         self.learning_rate = 0.001
-        #self.model = self.network()
-        self.model = self.network("model_files/nn_01.hdf5")
+        self.model = self.network()
+        #self.model = self.network("model_files/nn_01.hdf5")
 
 
     def network(self, weights=None):
         model = Sequential()
-        model.add(Dense(output_dim=40, activation='relu', input_dim=20))        # max 144
+        model.add(Dense(output_dim=40, activation='relu', input_dim=16))        # max 144
         model.add(Dropout(0.15))
         model.add(Dense(output_dim=40, activation='relu'))
         model.add(Dropout(0.15))
@@ -44,6 +44,11 @@ def write_data(data, file_name="state_data/data"):
     print("DATA SAVED.")
     pass
 
+def append_data(data, file_name="state_data/data"):
+    with open("{}.csv".format(file_name),'ab') as f:
+        np.savetxt(f, data, delimiter=",", fmt='%i')
+    print("DATA APPENDED.")
+
 
 def read_data(data_file="state_data/data.csv"):
     ''' Read the csv file data into a 2d numpy array.
@@ -61,22 +66,23 @@ def get_state(game, player, enemy, move):
     state = [
         # Am I on the ground or in the air
         player.jumping,
-       
+      
+        #"""
         # Where am I on the x coordinates
         # in the first quarter of screen
-        player.x < game.screen_width / 4,
+        #player.x < game.screen_width / 4,
         
         # in the 2nd quarter
-        player.x >= game.screen_width / 4
-            and player.x < game.screen_width / 2,
+        #player.x >= game.screen_width / 4
+        #    and player.x < game.screen_width / 2,
         
         # in the 3rd quarter
-        player.x >= game.screen_width / 2 
-            and player.x < game.screen_width * (3/4),
+        #player.x >= game.screen_width / 2 
+        #    and player.x < game.screen_width * (3/4),
         
         # in the 4th quarter
-        player.x >= game.screen_width * (3/4),
-
+        #player.x >= game.screen_width * (3/4),
+        #"""
         # Did dino crash?
         game.crash,
 
