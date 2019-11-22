@@ -13,6 +13,7 @@ from keras.utils import to_categorical
 import matplotlib.pyplot as plt
 import seaborn as sb
 import user_active as UA
+import collect_states as CS
 
 pygame.init()
 
@@ -23,7 +24,7 @@ G_screen_height = 500
 view_training = True
 
 # Activate Human Player:
-human = False
+human = True
 
 walk_right = [pygame.image.load('images/R_base.png'), pygame.image.load('images/R2_base.png')]
 bird_sprite = [pygame.image.load('images/bird_L1.png'), pygame.image.load('images/bird_L2.png')]
@@ -422,8 +423,11 @@ if __name__ == "__main__":
 
             if human:
                 final_move = UA.active_player(DINO)
-                print("{}\t{}".format(final_move, DINO.jumping))
+                #print("{}\t{}".format(final_move, DINO.jumping))
                 DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
+                
+                for BIRD in BIRDS:
+                    CS.get_state(GAME, DINO, BIRD, final_move)  # Making some states
 
             else:
                 #'''
