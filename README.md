@@ -15,3 +15,7 @@
     pip install matplotlib
     pip install seaborn
     pip install sklearn
+
+# Modifications:
+    * Always update the human and neural booleans in gen_dino file, these determine whether or not to collect data from human user,
+    or use the neural network.

@@ -15,8 +15,8 @@ def active_player(DINO):
     elif keys[pygame.K_RIGHT] and DINO.x < gdg.G_screen_width - (DINO.w + DINO.vel):
         move = [0,0,1,0]
 
-    if DINO.jumping:    # Testing this case...
-        move = [0,0,0,1]
+    #if DINO.jumping:    # Testing this case...
+    #    move = [0,0,0,1]
     if not DINO.jumping:
         # Jump if you can jump
         if keys[pygame.K_UP]:
