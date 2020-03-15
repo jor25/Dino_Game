@@ -1,5 +1,9 @@
+# File made for human players to use and play the game.
+# Controls are in this file
+# 11-22-2019
 import gen_dino_game as gdg
 import pygame
+
 
 def active_player(DINO):
     keys = pygame.key.get_pressed()
