@@ -4,15 +4,20 @@
 # Then going to use Machine learning to train a model to play the game
 # Planning to use Deep Q Learning
 
+# Resources:
+# Image Color Manipulation: https://stackoverflow.com/questions/12251896/colorize-image-while-preserving-transparency-with-pil
+# Pil to Pygame images: https://stackoverflow.com/questions/25202092/pil-and-pygame-image
 import pygame
 import random
-from Deep_Q_Learning import DQL_AI
 import numpy as np
-from keras.utils import to_categorical
 import matplotlib.pyplot as plt
 import seaborn as sb
 import user_active as UA
 import collect_states as CS
+
+from PIL import Image
+from PIL.ImageColor import getcolor, getrgb
+from PIL.ImageOps import grayscale
 
 # Initialize the game variable
 pygame.init()
@@ -35,12 +40,50 @@ FPS = 100
 
 nn = CS.Collection()
 
-walk_right = [pygame.image.load('images/R_base.png'), pygame.image.load('images/R2_base.png')]
+
+# Borrowed from stack
+def image_tint(src, tint='#ffffff'):
+    src = Image.open(src)
+
+    tr, tg, tb = getrgb(tint)
+    tl = getcolor(tint, "L")  # tint color's overall luminosity
+    if not tl: tl = 1  # avoid division by zero
+    tl = float(tl)  # compute luminosity preserving tint factors
+    sr, sg, sb = map(lambda tv: tv/tl, (tr, tg, tb))  # per component adjustments
+
+    # create look-up tables to map luminosity to adjusted tint
+    # (using floating-point math only to compute table)
+    luts = (list(map(lambda lr: int(lr*sr + 0.5), range(256))) +
+            list(map(lambda lg: int(lg*sg + 0.5), range(256))) +
+            list(map(lambda lb: int(lb*sb + 0.5), range(256))))
+    l = grayscale(src)  # 8-bit luminosity version of whole image
+    if Image.getmodebands(src.mode) < 4:
+        merge_args = (src.mode, (l, l, l))  # for RGB verion of grayscale
+    else:  # include copy of src image's alpha layer
+        a = Image.new("L", src.size)
+        a.putdata(src.getdata(3))
+        merge_args = (src.mode, (l, l, l, a))  # for RGBA verion of grayscale
+        luts += range(256)  # for 1:1 mapping of copied alpha values
+
+    return Image.merge(*merge_args).point(luts)
+
+
+dino1_png = image_tint('images/R_base.png', '#33b5e5')      # Lets me tint my dinosaur
+d1_mode = dino1_png.mode
+d1_size = dino1_png.size
+d1_data = dino1_png.tobytes()
+
+dino2_png = image_tint('images/R2_base.png', '#33b5e5')
+d2_mode = dino2_png.mode
+d2_size = dino2_png.size
+d2_data = dino2_png.tobytes()
+walk_right = [pygame.image.fromstring(d1_data, d1_size, d1_mode), pygame.image.fromstring(d2_data, d1_size, d1_mode)]
+
+#walk_right = [pygame.image.load('images/R_base.png'), pygame.image.load('images/R2_base.png')]
 bird_sprite = [pygame.image.load('images/bird_L1.png'), pygame.image.load('images/bird_L2.png')]
 cactus_sprite = [pygame.image.load('images/cactus_1.png')]
 
 clock = pygame.time.Clock()
-
 
 
 
@@ -51,7 +94,7 @@ class game(object):
         self.screen_width = screen_width                                            # Screen width
         self.screen_height = screen_height                                          # Screen height
         self.window = pygame.display.set_mode((screen_width, screen_height))        # Game window
-        self.bg = pygame.image.load('images/bg1.png')                                      # Background image
+        self.bg = pygame.image.load('images/bg3.png').convert_alpha()               # Background image
         self.crash = False                                                          # Collision
         self.player = player(200, 425, 45, 52)                                      # Summon player class
         self.enemies = enemies                                                      # Summon list of enemies
