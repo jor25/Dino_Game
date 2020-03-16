@@ -10,7 +10,7 @@
     `pip install numpy`
     `pip install pandas`
     `pip install keras`
-    `pip install tensorflow`
+    `pip install tensorflow==2.0`
     `pip install matplotlib`
     `pip install seaborn`
     `pip install sklearn`

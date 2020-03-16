@@ -66,26 +66,9 @@ def get_state(game, player, enemy, move):
     state = [
         # Am I on the ground or in the air
         player.jumping,
-      
-        #"""
-        # Where am I on the x coordinates
-        # in the first quarter of screen
-        #player.x < game.screen_width / 4,
-        
-        # in the 2nd quarter
-        #player.x >= game.screen_width / 4
-        #    and player.x < game.screen_width / 2,
-        
-        # in the 3rd quarter
-        #player.x >= game.screen_width / 2 
-        #    and player.x < game.screen_width * (3/4),
-        
-        # in the 4th quarter
-        #player.x >= game.screen_width * (3/4),
-        #"""
+
         # Did dino crash?
         game.crash,
-
 
         # Directly ahead/behind - danger on my current y cords
         player.y < enemy.hitbox[1] + enemy.hitbox[3] 

@@ -1,5 +1,4 @@
-# Used this site for online pygame editing
-# https://repl.it/languages/pygame
+# 3/15/20 Making new changes to the generic dino game.
 
 # 8/29/19 Making the generic google dinosaur game
 # Then going to use Machine learning to train a model to play the game
@@ -15,19 +14,25 @@ import seaborn as sb
 import user_active as UA
 import collect_states as CS
 
+# Initialize the game variable
 pygame.init()
 
 G_screen_width = 800
 G_screen_height = 500
 
-# Viewing variable:
-view_training = True
+# Global Config Variables - load into different file later
+# Viewing variable: True if I want to see the game in action
+VIEW_TRAINING = True
 
 # Activate Human Player:
-human = False
+HUMAN = True
 
 # Test Neural Net:
-neural = True
+NEURAL_PLAYER = not HUMAN
+
+# Game fps
+FPS = 100
+
 nn = CS.Collection()
 
 walk_right = [pygame.image.load('images/R_base.png'), pygame.image.load('images/R2_base.png')]
@@ -315,7 +320,8 @@ def plot_ai_results(array_counter, array_score):
 
 if __name__ == "__main__":
 
-    test_ai = DQL_AI()  # The AI
+    #test_ai = DQL_AI()  # The AI
+    #test_ai = CS.Collection()
 
     font = pygame.font.SysFont('comicsansms', 40, True)     # Font to display on screen
 
@@ -329,7 +335,7 @@ if __name__ == "__main__":
     game_num = []
     record = 0
 
-    if human:
+    if HUMAN:
         states_list = []
         label_list = []
 
@@ -351,15 +357,15 @@ if __name__ == "__main__":
         dist_low = 100
 
         # Perform first move
-        init_ai_game(DINO, GAME, BIRDS, test_ai, record)
+        #init_ai_game(DINO, GAME, BIRDS, test_ai, record)
 
         walk_points = 0
 
 
         while not GAME.crash:
 
-            if view_training:
-                clock.tick(500)  #30 # Fps # visible at fast on 100
+            if VIEW_TRAINING:
+                clock.tick(FPS)  #30 # Fps # visible at fast on 100     # 500 good for training
             keys = pygame.key.get_pressed()
 
 
@@ -428,7 +434,7 @@ if __name__ == "__main__":
                 #GAME.score += 1
                 GAME.got_walk_points = True
 
-            if human:
+            if HUMAN:
                 final_move = UA.active_player(DINO)
                 #print("{}\t{}".format(final_move, DINO.jumping))
                 DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
@@ -439,7 +445,7 @@ if __name__ == "__main__":
                         label_list.append(label)
                         states_list.append(state)
 
-            elif neural:
+            elif NEURAL_PLAYER:
 
                 final_move = [1,0,0,0]
                 try:
@@ -459,44 +465,10 @@ if __name__ == "__main__":
                     DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
 
             else:
-                #'''
-                # THE AI SECTION BELOW
-
-                test_ai.epsilon = 80 - counter_games                    # test_ai.epsilon is for random moves
-
-                state_old = test_ai.get_state(GAME, DINO, BIRDS)        # Get old state
+                print("NOPE - BAD AI")
 
 
-                if random.randint(0, 200) < test_ai.epsilon:                            # Do random moves based on test_ai.epsilon, or choose action with model
-                    final_move = to_categorical(random.randint(0,3), num_classes=4)     # num_classes = categories
-                    #print(final_move)
-                else:
-
-                    prediction = test_ai.model.predict(state_old.reshape((1, 29)))      # Make prediction for move based on the old state
-                    #print(prediction)
-                    #print(np.argmax(prediction[0]))
-                    if not DINO.jumping and np.argmax(prediction[0]) == 3:              # Change prediction if jumping
-                        temp = np.argmax(prediction[0])
-                        prediction[0][temp] = 0
-                        #print("temp = ",to_categorical(temp[0][2], num_classes=4))
-
-                    # Need to take the 2nd prediction if player is jumping
-                    final_move = to_categorical(np.argmax(prediction[0]), num_classes=4)
-                    #print(final_move)
-
-                print(final_move)
-
-                DINO.do_move(final_move, GAME, walk_points)                     # perform new move and get new state
-                state_new = test_ai.get_state(GAME, DINO, BIRDS)
-
-                reward = test_ai.set_reward(DINO, GAME, GAME.crash, record)                             # Set reward for new state
-
-                test_ai.train_short_memory(state_old, final_move, reward, state_new, GAME.crash)        # Train short memory base on new move and state
-
-                test_ai.remember(state_old, final_move, reward, state_new, GAME.crash)                  # Store new data into long term memory
-                record = get_record(GAME.score, record)
-                #'''
-
+            record = get_record(GAME.score, record)
             GAME.got_points = False         # Reset point indicator
             GAME.got_dodge_points = False
             GAME.got_walk_points = False
@@ -506,18 +478,17 @@ if __name__ == "__main__":
                 moving_bg = 0
 
             # Comment in when you want to see dino jumping
-            if view_training:
+            if VIEW_TRAINING:
                 draw_window(font, GAME, DINO, pellets, BIRDS, moving_bg, record, final_move)
             #print("dino.x = {}, dino.y ={}".format(DINO.x, DINO.y))
-        if not human:
-            test_ai.replay_new(test_ai.memory)
-        
-        else:   # Save run to file and quit before new run.
+        if HUMAN:       # Save run to file and quit before new run if human.
+            # New data
             #CS.write_data(states_list)
             #CS.write_data(label_list, "state_data/label")
 
-            CS.append_data(states_list)
-            CS.append_data(label_list, "state_data/label")
+            # add to data
+            #CS.append_data(states_list)
+            #CS.append_data(label_list, "state_data/label")
             print("QUIT NOOOWWW!!")
 
         counter_games += 1
@@ -527,7 +498,7 @@ if __name__ == "__main__":
         game_num.append(counter_games)
         game_scores.append(GAME.score)
 
-    test_ai.model.save_weights('test_weights1.hdf5')
+    #test_ai.model.save_weights('test_weights1.hdf5')
     plot_ai_results(game_num, game_scores)
 
     # Quit when exiting loop

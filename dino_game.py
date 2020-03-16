@@ -1,6 +1,4 @@
-# Use this site for online editing
-# https://repl.it/languages/pygame
-
+# 3/15/20 - Currently not in use. this file is for experimental game changes.
 # 8/23/19 Wanted to make a game - used the google dinosaur
 
 import pygame
