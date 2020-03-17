@@ -71,67 +71,58 @@ def get_state(game, player, enemy, move):
         game.crash,
 
         # Directly ahead/behind - danger on my current y cords
-        player.y < enemy.hitbox[1] + enemy.hitbox[3] 
-            and player.y + player.h > enemy.hitbox[1],
+        player.y < enemy.hitbox[1] + enemy.hitbox[3]
+        and player.y + player.h > enemy.hitbox[1],
 
         # Directly above/below - danger on my x cords
         player.x + player.w > enemy.hitbox[0]
-            and player.x < enemy.hitbox[0] + enemy.hitbox[2],
+        and player.x < enemy.hitbox[0] + enemy.hitbox[2],
 
         # The 100 pixel box range
         # Enemy within 100 pixels ahead of dino
-        player.x + player.w < enemy.x 
-            and player.x + player.w + 100 > enemy.x,
+        player.x + player.w < enemy.x < player.x + player.w + 100,
 
         # Enemy within 100 pixels behind dino
-        player.x > enemy.x + enemy.w 
-            and player.x - 100 < enemy.x + enemy.w,
+        player.x > enemy.x + enemy.w > player.x - 100,
         
         # Enemy within 100 pixels above dino
-        player.y > enemy.y + enemy.h 
-            and player.y - 100 < enemy.x + enemy.h,
+        player.y > enemy.y + enemy.h
+        and player.y - 100 < enemy.x + enemy.h,
 
         # Enemy within 100 pixels below dino
-        player.y + player.h < enemy.y 
-            and player.y + player.h + 100 > enemy.y,
+        player.y + player.h < enemy.y < player.y + player.h + 100,
 
         # The 200 pixel box range
         # Enemy within 200 pixels behind dino
-        player.x + player.w < enemy.x
-            and player.x + player.w + 200 > enemy.x,
+        player.x + player.w < enemy.x < player.x + player.w + 200,
 
         # Enemy within 200 pixels behind dino
-        player.x > enemy.x + enemy.w 
-            and player.x - 200 < enemy.x + enemy.w,
+        player.x > enemy.x + enemy.w > player.x - 200,
 
         # Enemy within 200 pixels above dino
-        player.y > enemy.y + enemy.h 
-            and player.y - 200 < enemy.x + enemy.h,
+        player.y > enemy.y + enemy.h
+        and player.y - 200 < enemy.x + enemy.h,
 
         # Enemy within 200 pixels below dino
-        player.y + player.h < enemy.y 
-            and player.y + player.h + 200 > enemy.y,
+        player.y + player.h < enemy.y < player.y + player.h + 200,
 
         # The 300 pixel box range
         # Enemy within 300 pixels behind dino
-        player.x + player.w < enemy.x 
-            and player.x + player.w + 300 > enemy.x,
+        player.x + player.w < enemy.x < player.x + player.w + 300,
 
         # Enemy within 300 pixels behind dino
-        player.x > enemy.x + enemy.w 
-            and player.x - 300 < enemy.x + enemy.w,
+        player.x > enemy.x + enemy.w > player.x - 300,
 
         # Enemy within 300 pixels above dino
-        player.y > enemy.y + enemy.h 
-            and player.y - 300 < enemy.x + enemy.h,
+        player.y > enemy.y + enemy.h
+        and player.y - 300 < enemy.x + enemy.h,
 
         # Enemy within 300 pixels below dino
-        player.y + player.h < enemy.y 
-            and player.y + player.h + 300 > enemy.y
-    
+        player.y + player.h < enemy.y < player.y + player.h + 300
+
     ]
 
     label = move
     #print(state)
-    print("label: {} State: {}".format(np.asarray(label, dtype=int), np.asarray(state, dtype=int)))
+    print("Player ID: {} label: {} State: {}".format(player.id, np.asarray(label, dtype=int), np.asarray(state, dtype=int)))
     return np.asarray(label, dtype=int), np.asarray(state, dtype=int)
