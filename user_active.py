@@ -6,6 +6,12 @@ import pygame
 
 
 def active_player(dino):
+    '''
+    This is for non AI player. Use key presses and return the specific moves.
+    :param dino: Dino class object.
+    :return: Give back the move in array form.
+    '''
+    # Collect the key presses from user
     keys = pygame.key.get_pressed()
     
     # Do nothing
@@ -19,8 +25,6 @@ def active_player(dino):
     elif keys[pygame.K_RIGHT] and dino.x < gdg.G_screen_width - (dino.w + dino.vel):
         move = [0,0,1,0]
 
-    #if dino.jumping:    # Testing this case...
-    #    move = [0,0,0,1]
     if not dino.jumping:
         # Jump if you can jump
         if keys[pygame.K_UP]:

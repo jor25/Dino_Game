@@ -50,3 +50,5 @@
     * https://stackoverflow.com/questions/25202092/pil-and-pygame-image    
 * Where to get the color codes:
     * https://htmlcolorcodes.com/
+* Random Color generation:
+    * https://stackoverflow.com/questions/28999287/generate-random-colors-rgb

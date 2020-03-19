@@ -11,8 +11,9 @@ from PIL.ImageColor import getcolor, getrgb
 from PIL.ImageOps import grayscale
 
 class player(object):
-    def __init__(self, x, y, w, h, id):
+    def __init__(self, x, y, w, h, id, color_code):
         self.id = id                                        # Player's Id number
+        self.color = color_code                             # String of hex color codes
         self.init_coord = (x, y, w, h)                      # Initial coordinates
         self.x = x                                          # Location x cord
         self.y = y                                          # Location y cord
@@ -29,7 +30,8 @@ class player(object):
         self.took_dmg = False
         self.health = 0
         self.alive = True
-        self.my_sprites = self.make_my_sprites(['images/R_base.png', 'images/R2_base.png'], '#00FF31')
+        self.my_sprites = self.make_my_sprites(['images/R_base.png', 'images/R2_base.png'], self.color)#'#00FF31')
+        self.fitness = 0
 
     def make_my_sprites(self, sprite_images, color_tint):
         """
@@ -101,6 +103,7 @@ class player(object):
         self.walk_count += 1
 
         self.hitbox = (self.x+2, self.y+2, self.w-3, self.h-3)      # This may be a bit redundant
+        #'''
         pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
         pygame.draw.rect(win, (255, 165, 0), (self.hitbox[0] - 100, self.hitbox[1] - 100,
                                               self.hitbox[2] + 200, self.hitbox[3] + 200), 2)  # Draw yellow sensory box
@@ -108,6 +111,7 @@ class player(object):
                                               self.hitbox[2] + 400, self.hitbox[3] + 400), 2)  # Draw orange sensory box
         pygame.draw.rect(win, (0, 255, 0), (self.hitbox[0] - 300, self.hitbox[1] - 300,
                                             self.hitbox[2] + 600, self.hitbox[3] + 600), 2)  # Draw green sensory box
+        #'''
 
     # Don't really need this function of generic game
     def take_dmg(self):
@@ -131,16 +135,15 @@ class player(object):
 
     # Putting player moves in generic function to allow model to select
     def do_move(self, move, game, walk_points):
+        self.fitness = walk_points
 
         if np.array_equal(move, [1,0,0,0]) and not self.jumping:    # Dino will just stay where it is if not jumping
             self.x = self.x
             self.y = self.y
-            #print("just walking here")
+
         elif np.array_equal(move, [1,0,0,0]) and self.jumping:      # Dino will follow jump physics
             self.do_jump()
 
-
-        #'''
         if np.array_equal(move, [0,1,0,0]):         # Move left
             if self.x > self.vel:                   # Within the left wall
                 self.x -= self.vel
@@ -157,12 +160,10 @@ class player(object):
             if self.jumping:
                 self.do_jump()
 
-        #'''
         # It does this for EVERY frame in the loop, need to complete the jump before can move...
         if np.array_equal(move, [0,0,0,1]):
             if not self.jumping:
                 self.jumping = True
-                #self.do_jump()      # Jumping
             else:
                 self.do_jump()      # Jumping
 
