@@ -4,8 +4,9 @@ import pygame
 
 class enemy(object):
 
-    def __init__(self, x, y, w, h, end, enemy_sprite, lmh, species):
+    def __init__(self, x, y, w, h, end, enemy_sprite, lmh, species, id):
         self.init_coord = (x, y, w, h)  # Initial coordinates
+        self.id = id
         self.x = x  # x coordinate
         self.y = y  # y coordinate
         self.w = w  # Character width
@@ -27,6 +28,10 @@ class enemy(object):
     def draw(self, win):
         #self.move()
         if self.alive:                              # Draw enemy if alive
+            '''
+            txt_surf, txt_rect = self.display_msg(str(self.id))
+            win.blit(txt_surf, txt_rect)
+            '''
             if self.walk_count + 1 >= 30:
                 self.walk_count = 0
 

@@ -93,19 +93,21 @@ class game(object):
 
         self.Enemies = [self.init_enemies(i) for i in range(max_enemies)]           # Summon list of enemies
         self.max_enemies = max_enemies #3
+        self.temp_enemies = np.asarray(self.Enemies)    # testing this out for potential performance speed up
+
 
     def init_enemies(self, id):
         en_index = random.randint(0, 3) % 3         # Enemy type - bird or cactus
         rand_lmh = random.randint(0, 2)             # Randomly select low, middle, or high (category of enemy)
-        offset = id * random.randint(300, 500)
+        offset = id * random.randrange(self.screen_width-200, self.screen_width+200, 100)
 
-        print("MAKE ENEMY ID: {}".format(id))
+        #print("MAKE ENEMY ID: {}".format(id))
         if en_index == 0:  # about 1/3 times we get a bird
             return enc.enemy(self.screen_width + offset, self.bird_y[rand_lmh], self.bird_w[rand_lmh], self.bird_h[rand_lmh],
-                             -42, self.bird_sprite, rand_lmh, "bird")
+                             -42, self.bird_sprite, rand_lmh, "bird", id)
         else:
             return enc.enemy(self.screen_width + offset, self.cact_y[rand_lmh], self.cact_w[rand_lmh], self.cact_h[rand_lmh],
-                             -42, self.cactus_sprite, rand_lmh, "cact")
+                             -42, self.cactus_sprite, rand_lmh, "cact", id)
 
 
     def main_game(self, enemy_cd, dist_low, dist_high, living_dinos, walk_points, record, moving_bg):
@@ -128,19 +130,6 @@ class game(object):
 
             # This is where I initialize random enemies onto the field
             # Check to see if less than max enemies and enemy cooldown is somewhere between low and high distance
-            if len(self.Enemies) < self.max_enemies and enemy_cd > random.randint(dist_low, dist_high):
-                enemy_cd = 0
-                # MAY REMOVE
-                en_index = random.randint(0, 3) % 3
-                rand_lmh = random.randint(0, 2)
-                print("MAKE ENEMY {}".format(len(self.Enemies)))
-                if en_index == 0:  # about 1/3 times we get a bird
-                    self.Enemies.append(
-                        enc.enemy(G_SCREEN_WIDTH, 440 - rand_lmh * 70, 46, 42, -42, self.bird_sprite, rand_lmh, "bird"))
-                else:
-                    self.Enemies.append(
-                        enc.enemy(G_SCREEN_WIDTH, cact_y[en_index], cact_w[en_index], cact_h[en_index], -42, self.cactus_sprite,
-                                  en_index, "cact"))
 
             enemy_cd += 1
 
@@ -151,14 +140,15 @@ class game(object):
             for index, DINO in enumerate(Dinos):
                 if DINO.alive:  # only do this if the current dino is alive
                     for Enemy in self.Enemies:
-                        Enemy.vel = self.speed
-                        Enemy.move()
-                        if DINO.alive and Enemy.alive:
-                            if DINO.y < Enemy.hitbox[1] + Enemy.hitbox[3]:
-                                if DINO.y + DINO.h > Enemy.hitbox[1]:
+                        if Enemy.alive:         # Only check if enemy is alive
+                            Enemy.vel = self.speed
+                            Enemy.move()
+                            #if DINO.alive and Enemy.alive:
+                            if DINO.y < Enemy.y + Enemy.h:
+                                if DINO.y + DINO.h > Enemy.y:
                                     # Within hitbox x coords
-                                    if DINO.x + DINO.w > Enemy.hitbox[0]:
-                                        if DINO.x < Enemy.hitbox[0] + Enemy.hitbox[2]:
+                                    if DINO.x + DINO.w > Enemy.x:
+                                        if DINO.x < Enemy.x + Enemy.w:
                                             DINO.take_dmg()  # When dino collides with bird
 
                                             if not DINO.alive:  # When dino out of lives
@@ -168,26 +158,24 @@ class game(object):
                                                     self.crash = True  # Died - game over - shut down
                                                     # print("Game CRASHED!!")
 
-                        elif Enemy.x + Enemy.w < DINO.x and not Enemy.got_jumped:  # Successfully dodged enemy
-                            Enemy.got_jumped = True
-                            self.score += 10
+                            elif Enemy.x + Enemy.w < DINO.x and not Enemy.got_jumped:  # Successfully dodged enemy
+                                Enemy.got_jumped = True
+                                self.score += 10
+                                self.dodge_points += 1
+                                self.got_dodge_points = True
+                                # print("dodged")
+                                self.got_points = True
+                                if self.score % 100 == 0:
+                                    self.speed += 1
+                                    if self.speed % 5 == 0 and dist_low != 10:  # if it reaches a mod of 10 then drop spacing between enemies
+                                        dist_low -= 10
 
-                            self.dodge_points += 1
-                            self.got_dodge_points = True
-                            # print("dodged")
+                        elif not Enemy.alive and enemy_cd > dist_low: # Enemy not alive - remake the enemy and go to next enemy
+                            #print("Making New Enemy for id: {}\tCD: {}".format(Enemy.id, enemy_cd))
+                            self.Enemies[Enemy.id] = self.init_enemies(Enemy.id)    # Modify that specific enemy with new init
 
-                        elif not Enemy.alive:  # When a bird dies, pop it from list and + score
-                            # self.score += 10
-                            self.got_points = True
-                            if self.score % 100 == 0:
-                                self.speed += 1
-                                self.max_enemies += 1
-                                if self.speed % 5 == 0 and dist_low != 10:  # if it reaches a mod of 10 then drop spacing between enemies
-                                    dist_low -= 10
-                                    dist_high -= 10
-
-                            self.Enemies.pop(self.Enemies.index(Enemy))
-
+                    if enemy_cd > dist_low:
+                        enemy_cd = 0
 
                     walk_points += 1
 
@@ -225,14 +213,15 @@ class game(object):
                     if moving_bg > self.screen_width:  # Reset background image
                         moving_bg = 0
 
-                    # Comment in when you want to see dino jumping
-                    if VIEW_TRAINING:
-                        draw_window(font, self, Dinos, self.Enemies, moving_bg, record, final_move, living_dinos, counter_games)
 
                     if self.score == 1000:  # Arbitrary number to save the model at
                         nn[index].model.save_weights('weight_files/Dino[{}]got_1000_points.hdf5'.format(index))
                         print("Weights Saved!")
                     # print("dino.x = {}, dino.y ={}".format(DINO.x, DINO.y))
+
+            # Comment in when you want to see dino jumping
+            if VIEW_TRAINING:
+                draw_window(font, self, Dinos, self.Enemies, moving_bg, record, final_move, living_dinos, counter_games)
 
         # Outside all the looping, give back these variables
         return record, walk_points
@@ -271,7 +260,8 @@ def draw_window(font, Game, Dinos, Birds, mv_bg, record, final_move, remaining_d
 
     # Display all the birds
     for bird in Birds:
-        bird.draw(Game.window)  # Draws bird
+        if bird.alive:
+            bird.draw(Game.window)  # Draws bird
 
     # Draw all the stuff
     pygame.display.update()
@@ -325,8 +315,8 @@ if __name__ == "__main__":
 
         moving_bg = 0       # Where to start the background image offset
         enemy_cd = 0        # Limit the amount of enemies at any given time
-        dist_high = 100     # Max distance between enemy spawns #150
-        dist_low = 50       # Min distance between enemy spawns #100
+        dist_high = 250     # Max distance between enemy spawns #150
+        dist_low = 100       # Min distance between enemy spawns #100
         walk_points = 0     # How far dino has walked - most likely will be used with GA
 
         # The main game loop
