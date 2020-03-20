@@ -42,6 +42,7 @@ else:
     POP_SIZE = 10   # Population size for AI, note: Performance slowdowns
 
 MAX_GAMES = 10
+MAX_ENEMIES = 3
 
 # Setting up the networks as globals to keep them from getting wiped out with the main loop
 nn = [CS.Collection() for i in range(POP_SIZE)]
@@ -53,7 +54,7 @@ clock = pygame.time.Clock()
 
 
 class game(object):
-    def __init__(self, screen_width, screen_height, enemies, num_players=1):
+    def __init__(self, screen_width, screen_height, max_enemies, num_players=1):
         '''
         Initialize the game object and all it's variables.
         :param screen_width: Given an integer screen width
@@ -66,24 +67,46 @@ class game(object):
         self.screen_height = screen_height                                          # Screen height
         self.window = pygame.display.set_mode((screen_width, screen_height))        # Game window
         self.bg = pygame.image.load('images/bg4.png').convert_alpha()               # Background image
-        print(self.bg.get_size())
+        #print(self.bg.get_size())
         self.bg_len = self.bg.get_size()[0]                                         # Background image width
-        print(self.bg_len)
+        #print(self.bg_len)
         self.crash = False                                                          # Collision
         self.players = [plc.player(200, 425, 45, 52, i, color[i]) for i in range(num_players)]    # Summon player class
         self.population = num_players
-        self.enemies = enemies                                                          # Summon list of enemies
-        self.max_enemies = 3
         self.score = 0                                                              # Game score
         self.speed = 10                                                             # Game speed that will increment
         self.got_points = False
         self.dodge_points = 0
         self.got_dodge_points = False
         self.got_walk_points = False
-        # Make the sprites game objects?
+        # Make the bird sprites game objects and specifications
         self.bird_sprite = [pygame.image.load('images/bird_L1.png').convert_alpha(),
                             pygame.image.load('images/bird_L2.png').convert_alpha()]
+        self.bird_w = [46, 46, 46]      # redundant
+        self.bird_h = [42, 42, 42]      # redundant
+        self.bird_y = [440, 370, 300]
+        # Set cactus sprite object specifications
         self.cactus_sprite = [pygame.image.load('images/cactus_1.png').convert_alpha()]
+        self.cact_w = [25, 35, 45]
+        self.cact_h = [50, 70, 100]
+        self.cact_y = [420, 400, 370]
+
+        self.Enemies = [self.init_enemies(i) for i in range(max_enemies)]           # Summon list of enemies
+        self.max_enemies = max_enemies #3
+
+    def init_enemies(self, id):
+        en_index = random.randint(0, 3) % 3         # Enemy type - bird or cactus
+        rand_lmh = random.randint(0, 2)             # Randomly select low, middle, or high (category of enemy)
+        offset = id * random.randint(300, 500)
+
+        print("MAKE ENEMY ID: {}".format(id))
+        if en_index == 0:  # about 1/3 times we get a bird
+            return enc.enemy(self.screen_width + offset, self.bird_y[rand_lmh], self.bird_w[rand_lmh], self.bird_h[rand_lmh],
+                             -42, self.bird_sprite, rand_lmh, "bird")
+        else:
+            return enc.enemy(self.screen_width + offset, self.cact_y[rand_lmh], self.cact_w[rand_lmh], self.cact_h[rand_lmh],
+                             -42, self.cactus_sprite, rand_lmh, "cact")
+
 
     def main_game(self, enemy_cd, dist_low, dist_high, living_dinos, walk_points, record, moving_bg):
         '''
@@ -105,18 +128,19 @@ class game(object):
 
             # This is where I initialize random enemies onto the field
             # Check to see if less than max enemies and enemy cooldown is somewhere between low and high distance
-            if len(Enemies) < self.max_enemies and enemy_cd > random.randint(dist_low, dist_high):
+            if len(self.Enemies) < self.max_enemies and enemy_cd > random.randint(dist_low, dist_high):
                 enemy_cd = 0
-                index = random.randint(0, 3) % 3
+                # MAY REMOVE
+                en_index = random.randint(0, 3) % 3
                 rand_lmh = random.randint(0, 2)
-                # print("MAKE ENEMY")
-                if index == 0:  # about 1/3 times we get a bird
-                    Enemies.append(
+                print("MAKE ENEMY {}".format(len(self.Enemies)))
+                if en_index == 0:  # about 1/3 times we get a bird
+                    self.Enemies.append(
                         enc.enemy(G_SCREEN_WIDTH, 440 - rand_lmh * 70, 46, 42, -42, self.bird_sprite, rand_lmh, "bird"))
                 else:
-                    Enemies.append(
-                        enc.enemy(G_SCREEN_WIDTH, cact_y[index], cact_w[index], cact_h[index], -42, self.cactus_sprite,
-                                  index, "cact"))
+                    self.Enemies.append(
+                        enc.enemy(G_SCREEN_WIDTH, cact_y[en_index], cact_w[en_index], cact_h[en_index], -42, self.cactus_sprite,
+                                  en_index, "cact"))
 
             enemy_cd += 1
 
@@ -126,7 +150,7 @@ class game(object):
 
             for index, DINO in enumerate(Dinos):
                 if DINO.alive:  # only do this if the current dino is alive
-                    for Enemy in Enemies:
+                    for Enemy in self.Enemies:
                         Enemy.vel = self.speed
                         Enemy.move()
                         if DINO.alive and Enemy.alive:
@@ -136,6 +160,13 @@ class game(object):
                                     if DINO.x + DINO.w > Enemy.hitbox[0]:
                                         if DINO.x < Enemy.hitbox[0] + Enemy.hitbox[2]:
                                             DINO.take_dmg()  # When dino collides with bird
+
+                                            if not DINO.alive:  # When dino out of lives
+                                                living_dinos -= 1
+                                                # print("DINO {} - DEAD".format(DINO.id))
+                                                if living_dinos <= 0:  # All dinos dead - reset game
+                                                    self.crash = True  # Died - game over - shut down
+                                                    # print("Game CRASHED!!")
 
                         elif Enemy.x + Enemy.w < DINO.x and not Enemy.got_jumped:  # Successfully dodged enemy
                             Enemy.got_jumped = True
@@ -155,14 +186,8 @@ class game(object):
                                     dist_low -= 10
                                     dist_high -= 10
 
-                            Enemies.pop(Enemies.index(Enemy))
+                            self.Enemies.pop(self.Enemies.index(Enemy))
 
-                        if not DINO.alive:  # When dino out of lives
-                            living_dinos -= 1
-                            print("DINO {} - DEAD".format(DINO.id))
-                            if living_dinos <= 0:  # All dinos dead - reset game
-                                self.crash = True  # Died - game over - shut down
-                                print("Game CRASHED!!")
 
                     walk_points += 1
 
@@ -174,14 +199,14 @@ class game(object):
                         DINO.do_move(final_move, self, walk_points)  # Perform new move and get new state
 
                         if not np.array_equal(final_move, [1, 0, 0, 0]) or walk_points % 100 == 0:
-                            state = CS.get_state2(self, DINO, Enemies)  # Making some states
+                            state = CS.get_state2(self, DINO, self.Enemies)  # Making some states
                             label_list.append(np.asarray(final_move, dtype=int))
                             states_list.append(state)
 
                     elif NEURAL_PLAYER:
                         # Use the neural network to make a prediction
                         final_move = [1, 0, 0, 0]
-                        state = CS.get_state2(self, DINO, Enemies)  # Making some states
+                        state = CS.get_state2(self, DINO, self.Enemies)  # Making some states
                         restate = np.reshape(state, (-1, 16))  # Reshape to fit the model input
                         prediction = nn[index].model.predict(restate)  # Predict with specific model
                         # print(prediction)
@@ -202,7 +227,7 @@ class game(object):
 
                     # Comment in when you want to see dino jumping
                     if VIEW_TRAINING:
-                        draw_window(font, self, Dinos, Enemies, moving_bg, record, final_move, living_dinos, counter_games)
+                        draw_window(font, self, Dinos, self.Enemies, moving_bg, record, final_move, living_dinos, counter_games)
 
                     if self.score == 1000:  # Arbitrary number to save the model at
                         nn[index].model.save_weights('weight_files/Dino[{}]got_1000_points.hdf5'.format(index))
@@ -292,11 +317,10 @@ if __name__ == "__main__":
         states_list = []
         label_list = []
 
-    # The multi-game loop
+    # The multi-game loop, keeps playing the game until MAX_GAMES is reached
     while counter_games < MAX_GAMES:
-        Enemies = []
         living_dinos = POP_SIZE  # Number of dinos on field - Also resets for each game
-        Game = game(G_SCREEN_WIDTH, G_SCREEN_HEIGHT, Enemies, living_dinos)
+        Game = game(G_SCREEN_WIDTH, G_SCREEN_HEIGHT, MAX_ENEMIES, living_dinos)
         Dinos = Game.players
 
         moving_bg = 0       # Where to start the background image offset
