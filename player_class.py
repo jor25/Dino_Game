@@ -32,6 +32,7 @@ class player(object):
         self.alive = True
         self.my_sprites = self.make_my_sprites(['images/R_base.png', 'images/R2_base.png'], self.color)#'#00FF31')
         self.fitness = 0
+        self.dodge_points = 0
 
     def make_my_sprites(self, sprite_images, color_tint):
         """
@@ -80,7 +81,7 @@ class player(object):
         if self.walk_count + 1 >= 30:
             self.walk_count = 0
 
-        txt_surf, txt_rect = self.display_msg(str(move))
+        txt_surf, txt_rect = self.display_msg("{} {} {}".format(self.id, move, self.fitness))
         #if self.walk_count < 20:  # Wait 20 frames before turning off flag
         win.blit(txt_surf, txt_rect)
 

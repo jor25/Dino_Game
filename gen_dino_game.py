@@ -17,9 +17,7 @@ import collect_states as CS
 
 import player_class as plc
 import enemy_class as enc
-
-# Initialize the game variable
-pygame.init()
+import gen_alg as ga
 
 G_SCREEN_WIDTH = 800
 G_SCREEN_HEIGHT = 500
@@ -35,22 +33,24 @@ HUMAN = False
 NEURAL_PLAYER = not HUMAN
 
 if HUMAN:
-    FPS = 100       # This will hurt your eyes less
+    FPS = 30       # This will hurt your eyes less
     POP_SIZE = 1    # Population size for human player
 else:
-    FPS = 1000      # Game fps - for AI, go fast!
-    POP_SIZE = 10   # Population size for AI, note: Performance slowdowns
+    FPS = 100      # Game fps - for AI, go fast!
+    POP_SIZE = 20   # Population size for AI, note: Performance slowdowns
 
-MAX_GAMES = 10
+MAX_GAMES = 20
 MAX_ENEMIES = 3
 
 # Setting up the networks as globals to keep them from getting wiped out with the main loop
-nn = [CS.Collection() for i in range(POP_SIZE)]
+population = [CS.Dna(i, 1) for i in range(POP_SIZE)]            # All the different network architectures
+nn = [CS.Collection(population[i]) for i in range(POP_SIZE)]    # The actual networks (Dino Brains)
 personal_scores = [[] for i in range(POP_SIZE)]
 # Setting initial colors of dinosaurs
 color = ["#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(POP_SIZE)]
 
-clock = pygame.time.Clock()
+if VIEW_TRAINING:
+    clock = pygame.time.Clock()
 
 
 class game(object):
@@ -112,7 +112,7 @@ class game(object):
 
     def main_game(self, enemy_cd, dist_low, dist_high, living_dinos, walk_points, record, moving_bg):
         '''
-        Function that loops through and plays the game. Found in main.
+        Function that loops through and plays the game. Found in main. Runs 1 game at a time.
         :param enemy_cd: enemy cooldown integer
         :param dist_low: min distance between enemies integer
         :param dist_high: max distance between enemies integer
@@ -137,6 +137,11 @@ class game(object):
                 if event.type == pygame.QUIT:
                     self.crash = True
 
+            walk_points += 1
+
+            if walk_points % 50 == 0:
+                self.got_walk_points = True
+
             for index, DINO in enumerate(Dinos):
                 if DINO.alive:  # only do this if the current dino is alive
                     for Enemy in self.Enemies:
@@ -158,11 +163,12 @@ class game(object):
                                                     self.crash = True  # Died - game over - shut down
                                                     # print("Game CRASHED!!")
 
-                            elif Enemy.x + Enemy.w < DINO.x and not Enemy.got_jumped:  # Successfully dodged enemy
+                            if Enemy.x + Enemy.w < DINO.x and not Enemy.got_jumped:  # Successfully dodged enemy
                                 Enemy.got_jumped = True
                                 self.score += 10
                                 self.dodge_points += 1
                                 self.got_dodge_points = True
+                                #DINO.dodge_points = self.dodge_points      # also let the player keep track of their dodges
                                 # print("dodged")
                                 self.got_points = True
                                 if self.score % 100 == 0:
@@ -177,10 +183,7 @@ class game(object):
                     if enemy_cd > dist_low:
                         enemy_cd = 0
 
-                    walk_points += 1
 
-                    if walk_points % 50 == 0:
-                        self.got_walk_points = True
 
                     if HUMAN:
                         final_move = UA.active_player(DINO)
@@ -222,6 +225,13 @@ class game(object):
             # Comment in when you want to see dino jumping
             if VIEW_TRAINING:
                 draw_window(font, self, Dinos, self.Enemies, moving_bg, record, final_move, living_dinos, counter_games)
+
+        # after game crash show me how each dino scored on fitnesses
+        for dino in Dinos:
+            print("---------------------------------------------------\n"
+                  "Dino ID: {}\t\tFitness: {}\n\tInput: {}\t\tHidden: {}\t\tOut: {}"
+                  "".format(dino.id, dino.fitness, nn[dino.id].input_layer,
+                            nn[dino.id].hidden_layers, nn[dino.id].output_layer))
 
         # Outside all the looping, give back these variables
         return record, walk_points
@@ -289,8 +299,7 @@ def plot_ai_results(array_counter, array_score):
 
 
 if __name__ == "__main__":
-
-    font = pygame.font.SysFont('comicsansms', 40, True)     # Font to display on screen
+    Gen_A = ga.Gen_alg(POP_SIZE, nn)
 
     # Set cactus specifications
     cact_w = [25, 35, 45]
@@ -302,6 +311,11 @@ if __name__ == "__main__":
     game_scores = []        # for plotting later on
     game_num = []
     record = 0
+
+    if VIEW_TRAINING:
+        # Initialize the game variable
+        pygame.init()
+        font = pygame.font.SysFont('comicsansms', 40, True)     # Font to display on screen
 
     if HUMAN:
         states_list = []
@@ -340,6 +354,18 @@ if __name__ == "__main__":
             score.append(Dinos[i].fitness)  # just in case I want to see how the dinos are doing individually
 
         game_scores.append(Game.score)
+
+        # Activate GA! Get a list of indexes to update
+        next_gen_updates = Gen_A.check_fitness(Dinos)
+        print("UPDATE THESE ID's: {}".format(next_gen_updates))
+
+        # Next step is to update the nn at the specific indexes
+        for update_id in next_gen_updates:
+            #print("Updating nn[{}] from {} with {}".format(update_id, nn[update_id].hidden_layers, Gen_A.population[update_id].hidden_layers))
+            #nn[update_id].hidden_layers = Gen_A.population[update_id].hidden_layers     # Update the hidden layers
+            nn[update_id].model = nn[update_id].create_network()                        # Then update the model
+            #print("\tto: {}".format(nn[update_id].hidden_layers))                       # Verify model update
+
 
     game_num = np.arange(counter_games)
     plot_ai_results(game_num, game_scores)

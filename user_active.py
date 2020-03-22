@@ -22,7 +22,7 @@ def active_player(dino):
         move = [0,1,0,0]
    
     # Go Right
-    elif keys[pygame.K_RIGHT] and dino.x < gdg.G_screen_width - (dino.w + dino.vel):
+    elif keys[pygame.K_RIGHT] and dino.x < gdg.G_SCREEN_WIDTH - (dino.w + dino.vel):
         move = [0,0,1,0]
 
     if not dino.jumping:

@@ -10,14 +10,54 @@ from operator import add
 from keras.optimizers import Adam
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout
+import keras.losses as kl
+
+'''
+Class for each individual in the population will be built off this information.
+This information will later be scrambled with crossover to create new population.
+'''
+class Dna:
+    def __init__(self, id, chrom_num):
+        self.id = id                            # The populant's id number
+        self.num_layers = chrom_num
+        self.fit_vals = [0]                     # Accuracy scores to be added
+        self.input_layer = 16                   # Same number for each input
+        self.hidden_layers = [random.randint(1, 50) for i in range(self.num_layers)]       # Set various hidden layers randomly
+        self.output_layer = 4                   # Placeholder output layer
+        self.history = [id]                     # List of all combinations
 
 
 class Collection():
-    def __init__(self):
+    def __init__(self, dna):
         self.learning_rate = 0.001
-        self.model = self.network()
+        #self.model = self.network()
         #self.model = self.network("model_files/nn_01.hdf5")
 
+        self.mod_id = dna.id
+        self.input_layer = dna.input_layer
+        self.hidden_layers = dna.hidden_layers
+        self.output_layer = dna.output_layer
+        self.model = self.create_network()  # No initial weights
+        #self.model = self.create_network("weight_files/nn_3.hdf5")  # Using my trained weights
+
+    def create_network(self, weights=None):
+        # Create my model
+        model = Sequential()
+        model.add(Dense(output_dim=self.hidden_layers[0], activation='relu', input_dim=self.input_layer))    # Input
+        for i in range(1, len(self.hidden_layers)):
+            model.add(Dense(output_dim=self.hidden_layers[i], activation='relu'))           # Add all hidden layers
+        model.add(Dense(output_dim=self.output_layer, activation='softmax'))                # Output layer
+        opt = Adam(self.learning_rate)      # Set learning rate
+
+        # Compile model
+        model.compile(loss=kl.categorical_crossentropy, metrics=['accuracy'], optimizer=opt)
+        #print("Model ID: {} compiled".format(self.mod_id))     # Verify updates
+
+        # Load weights if they're available
+        if weights:
+            model.load_weights(weights)
+            print("model loaded")
+        return model
 
     def network(self, weights=None):
         model = Sequential()
