@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import seaborn as sb
 import user_active as UA
 import collect_states as CS
+import time
 
 import player_class as plc
 import enemy_class as enc
@@ -37,13 +38,13 @@ if HUMAN:
     POP_SIZE = 1    # Population size for human player
 else:
     FPS = 100      # Game fps - for AI, go fast!
-    POP_SIZE = 20   # Population size for AI, note: Performance slowdowns
+    POP_SIZE = 40   # Population size for AI, note: Performance slowdowns
 
-MAX_GAMES = 20
+MAX_GAMES = 50
 MAX_ENEMIES = 3
 
 # Setting up the networks as globals to keep them from getting wiped out with the main loop
-population = [CS.Dna(i, 1) for i in range(POP_SIZE)]            # All the different network architectures
+population = [CS.Dna(i, 2) for i in range(POP_SIZE)]            # All the different network architectures
 nn = [CS.Collection(population[i]) for i in range(POP_SIZE)]    # The actual networks (Dino Brains)
 personal_scores = [[] for i in range(POP_SIZE)]
 # Setting initial colors of dinosaurs
@@ -298,8 +299,50 @@ def plot_ai_results(array_counter, array_score):
     plt.show()
 
 
+def graph_display(images, population, gen_num, mut_rate):
+    max_fitness = population[0].fit_vals[ np.argmax(population[0].fit_vals) ]
+    pop_len = len(images) #int(len(images)*.05 + 1)   # for speed up - show only 5% of population
+    for i in range(pop_len):    # population length
+        images[i].set_ydata(population[i].fit_vals)
+        images[i].set_xdata(np.arange(len(population[i].fit_vals)))
+        #img1.set_xlim()
+        #print("Hello {}".format(i))
+
+        ax = plt.gca()
+        # recompute the ax.dataLim
+        ax.relim()
+        # update ax.viewLim using the new dataLim
+        ax.autoscale_view()
+
+        temp_max = population[i].fit_vals[ np.argmax(population[i].fit_vals) ]
+        if max_fitness < temp_max:
+            max_fitness = temp_max  # Update best score
+
+    # Place the title of the plot with dynamic details
+    fig.suptitle('Genetic Algorithm\n'
+                 'Max Fitness: {}'
+                 '      Generation: {}'
+                 '      Pop Size: {}'
+                 '      Mutation Rate: {}'.format(max_fitness, gen_num, len(population), mut_rate), fontsize=10)
+
+
+    # Draw the plots and wait.
+    plt.draw()
+    plt.pause(1e-15)
+    time.sleep(0.1)
+
+
 if __name__ == "__main__":
     Gen_A = ga.Gen_alg(POP_SIZE, nn)
+    # Initialize Matplotlib figure
+    fig = plt.figure()
+    images = []     # List of matplotlib elements
+    for i in range(len(Gen_A.population)):
+        print("Pop_Id: {}\nLayers: {}\n".format(Gen_A.population[i].mod_id, Gen_A.population[i].hidden_layers))
+
+        # Initialize all the plots
+        temp_img, = plt.plot(Gen_A.population[i].fit_vals, np.arange(len(Gen_A.population[i].fit_vals)))
+        images.append(temp_img)
 
     # Set cactus specifications
     cact_w = [25, 35, 45]
@@ -365,6 +408,9 @@ if __name__ == "__main__":
             #nn[update_id].hidden_layers = Gen_A.population[update_id].hidden_layers     # Update the hidden layers
             nn[update_id].model = nn[update_id].create_network()                        # Then update the model
             #print("\tto: {}".format(nn[update_id].hidden_layers))                       # Verify model update
+
+        # Display the graph:
+        graph_display(images, nn, counter_games, Gen_A.mutation_rate)
 
 
     game_num = np.arange(counter_games)

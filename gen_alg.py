@@ -31,7 +31,7 @@ class Gen_alg:
         for i, pop in enumerate(self.population):     # Each individual in the population
             fit_score = dinos[i].fitness           # The dino's fitness value
             #fit_score = len(fit[0])
-            #pop.fit_vals.append(fit_score)  # Each population member has a list of their fitnesses
+            pop.fit_vals.append(fit_score)  # Each population member has a list of their fitnesses
             pop_fits[pop_ind] = fit_score  # Update the pop's score for specific index
             pop_ind += 1  # Increment index
             #print("ID: {}\tFit Score: {}\tDNA: {}".format(pop.mod_id, fit_score, pop.hidden_layers))

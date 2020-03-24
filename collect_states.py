@@ -38,6 +38,7 @@ class Collection():
         self.hidden_layers = dna.hidden_layers
         self.output_layer = dna.output_layer
         self.model = self.create_network()  # No initial weights
+        self.fit_vals = dna.fit_vals    # [0]
         #self.model = self.create_network("weight_files/nn_3.hdf5")  # Using my trained weights
 
     def create_network(self, weights=None):
