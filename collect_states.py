@@ -39,6 +39,8 @@ class Collection():
         self.output_layer = dna.output_layer
         self.model = self.create_network()  # No initial weights
         self.fit_vals = dna.fit_vals    # [0]
+        self.states = []    # 16 inputs
+        self.labels = []    # 4 outputs
         #self.model = self.create_network("weight_files/nn_3.hdf5")  # Using my trained weights
 
     def create_network(self, weights=None):
@@ -47,6 +49,7 @@ class Collection():
         model.add(Dense(output_dim=self.hidden_layers[0], activation='relu', input_dim=self.input_layer))    # Input
         for i in range(1, len(self.hidden_layers)):
             model.add(Dense(output_dim=self.hidden_layers[i], activation='relu'))           # Add all hidden layers
+            model.add(Dropout(0.15))
         model.add(Dense(output_dim=self.output_layer, activation='softmax'))                # Output layer
         opt = Adam(self.learning_rate)      # Set learning rate
 
@@ -101,72 +104,6 @@ def read_data(data_file="state_data/data.csv"):
     data = np.loadtxt(data_file, delimiter=",", dtype=int)
     
     return data
-
-
-def get_state(game, player, enemy, move):
-    state = [
-        # Am I on the ground or in the air
-        player.jumping,
-
-        # Did dino crash?
-        game.crash,
-
-        # Directly ahead/behind - danger on my current y cords
-        player.y < enemy.hitbox[1] + enemy.hitbox[3]
-        and player.y + player.h > enemy.hitbox[1],
-
-        # Directly above/below - danger on my x cords
-        player.x + player.w > enemy.hitbox[0]
-        and player.x < enemy.hitbox[0] + enemy.hitbox[2],
-
-        # The 100 pixel box range
-        # Enemy within 100 pixels ahead of dino
-        player.x + player.w < enemy.x < player.x + player.w + 100,
-
-        # Enemy within 100 pixels behind dino
-        player.x > enemy.x + enemy.w > player.x - 100,
-        
-        # Enemy within 100 pixels above dino
-        player.y > enemy.y + enemy.h
-        and player.y - 100 < enemy.x + enemy.h,
-
-        # Enemy within 100 pixels below dino
-        player.y + player.h < enemy.y < player.y + player.h + 100,
-
-        # The 200 pixel box range
-        # Enemy within 200 pixels behind dino
-        player.x + player.w < enemy.x < player.x + player.w + 200,
-
-        # Enemy within 200 pixels behind dino
-        player.x > enemy.x + enemy.w > player.x - 200,
-
-        # Enemy within 200 pixels above dino
-        player.y > enemy.y + enemy.h
-        and player.y - 200 < enemy.x + enemy.h,
-
-        # Enemy within 200 pixels below dino
-        player.y + player.h < enemy.y < player.y + player.h + 200,
-
-        # The 300 pixel box range
-        # Enemy within 300 pixels behind dino
-        player.x + player.w < enemy.x < player.x + player.w + 300,
-
-        # Enemy within 300 pixels behind dino
-        player.x > enemy.x + enemy.w > player.x - 300,
-
-        # Enemy within 300 pixels above dino
-        player.y > enemy.y + enemy.h
-        and player.y - 300 < enemy.x + enemy.h,
-
-        # Enemy within 300 pixels below dino
-        player.y + player.h < enemy.y < player.y + player.h + 300
-
-    ]
-
-    label = move
-    #print(state)
-    print("Player ID: {} label: {} State: {}".format(player.id, np.asarray(label, dtype=int), np.asarray(state, dtype=int)))
-    return np.asarray(label, dtype=int), np.asarray(state, dtype=int)
 
 
 def get_state2(game, player, enemies):

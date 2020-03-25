@@ -29,7 +29,8 @@ class Gen_alg:
         pop_ind = 0
 
         for i, pop in enumerate(self.population):     # Each individual in the population
-            fit_score = dinos[i].fitness           # The dino's fitness value
+            fit_score = dinos[i].fitness            # The dino's fitness value
+            dinos[i].fitness = 0                    # Reset dinos fitness
             #fit_score = len(fit[0])
             pop.fit_vals.append(fit_score)  # Each population member has a list of their fitnesses
             pop_fits[pop_ind] = fit_score  # Update the pop's score for specific index
@@ -38,7 +39,9 @@ class Gen_alg:
 
         # Merge these two together later
         surv_ind = np.argpartition(pop_fits, -self.remaining)[-self.remaining:]  # Index of the survivors
-        print("Survivor indexes: {}\tSurv_fit_vals: {}".format(surv_ind, pop_fits[surv_ind]))
+        top_index = np.argmax(pop_fits[surv_ind])
+        top_dino = surv_ind[top_index]
+        print("Survivor indexes: {}\tSurv_fit_vals: {}\ttop_dino index: {}\tval: {}".format(surv_ind, pop_fits[surv_ind], top_dino, pop_fits[top_dino]))
 
         term_ind = np.argpartition(pop_fits, self.remaining)[:self.remaining]  # Index of the terminated
         print("Terminated indexes: {}\tTerm_fit_vals: {}".format(term_ind, pop_fits[term_ind]))
@@ -59,7 +62,7 @@ class Gen_alg:
             # print("****** New_child: {} ******".format(self.population[term_ind[i]].hidden_layers))
         #print("Function: {}".format(function))
 
-        return term_ind     # Let me know which ones to update
+        return term_ind, top_dino     # Let me know which ones to update, and the best of the population
 
     def pair_off(self, surv_index):
         # Pair off the survivors

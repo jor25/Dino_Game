@@ -38,13 +38,13 @@ if HUMAN:
     POP_SIZE = 1    # Population size for human player
 else:
     FPS = 100      # Game fps - for AI, go fast!
-    POP_SIZE = 40   # Population size for AI, note: Performance slowdowns
+    POP_SIZE = 8   # Population size for AI, note: Performance slowdowns
 
-MAX_GAMES = 50
+MAX_GAMES = 10
 MAX_ENEMIES = 3
 
 # Setting up the networks as globals to keep them from getting wiped out with the main loop
-population = [CS.Dna(i, 2) for i in range(POP_SIZE)]            # All the different network architectures
+population = [CS.Dna(i, 5) for i in range(POP_SIZE)]            # All the different network architectures
 nn = [CS.Collection(population[i]) for i in range(POP_SIZE)]    # The actual networks (Dino Brains)
 personal_scores = [[] for i in range(POP_SIZE)]
 # Setting initial colors of dinosaurs
@@ -206,7 +206,11 @@ class game(object):
                         final_move[np.argmax(prediction[0])] = 1  # Set model's top prediction = 1
                         # Use the below for Debugging
                         ##print("Dino: {}\t\tFinal_move: {}\t\tState: {}".format(DINO.id, final_move, state))
-                        DINO.do_move(final_move, self, walk_points)  # Do new move and get new state
+                        DINO.do_move(final_move, self, walk_points, state)  # Do new move and get new state
+
+                        if walk_points % 5 == 0: #not np.array_equal(final_move, [0, 0, 0, 1]) or not np.array_equal(final_move, [1, 0, 0, 0]) or walk_points % 20 == 0:
+                            nn[DINO.id].labels.append(np.asarray(final_move, dtype=int))        # Collect labels while alive
+                            nn[DINO.id].states.append(state)                                  # Collect states while alive
 
                     record = get_record(self.score, record)
                     self.got_points = False  # Reset point indicator
@@ -332,10 +336,22 @@ def graph_display(images, population, gen_num, mut_rate):
     time.sleep(0.1)
 
 
+def trainer(networks, best_states, best_labels):
+    # Function to train the model for x epochs based on best of the generation collected data
+    print("state shape: {}\t label shape: {}".format(best_states.shape, best_labels.shape))
+    # Train Model - loop through each and train accordingly
+    for network in networks:
+        # Reset all their states and labels
+        network.states = []     # Full reset
+        network.labels = []     # Full reset
+        network.model.fit(best_states, best_labels, epochs=1, verbose=1, shuffle=True)
+
+
 if __name__ == "__main__":
     Gen_A = ga.Gen_alg(POP_SIZE, nn)
-    # Initialize Matplotlib figure
-    fig = plt.figure()
+    if VIEW_TRAINING:
+        # Initialize Matplotlib figure
+        fig = plt.figure()
     images = []     # List of matplotlib elements
     for i in range(len(Gen_A.population)):
         print("Pop_Id: {}\nLayers: {}\n".format(Gen_A.population[i].mod_id, Gen_A.population[i].hidden_layers))
@@ -354,6 +370,9 @@ if __name__ == "__main__":
     game_scores = []        # for plotting later on
     game_num = []
     record = 0
+    temp_states = None
+    temp_labels = None
+
 
     if VIEW_TRAINING:
         # Initialize the game variable
@@ -373,7 +392,7 @@ if __name__ == "__main__":
         moving_bg = 0       # Where to start the background image offset
         enemy_cd = 0        # Limit the amount of enemies at any given time
         dist_high = 250     # Max distance between enemy spawns #150
-        dist_low = 100       # Min distance between enemy spawns #100
+        dist_low = 80       # Min distance between enemy spawns #100
         walk_points = 0     # How far dino has walked - most likely will be used with GA
 
         # The main game loop
@@ -398,8 +417,8 @@ if __name__ == "__main__":
 
         game_scores.append(Game.score)
 
-        # Activate GA! Get a list of indexes to update
-        next_gen_updates = Gen_A.check_fitness(Dinos)
+        # Activate GA! Get a list of indexes to update and the best dino
+        next_gen_updates, top_dino_id = Gen_A.check_fitness(Dinos)
         print("UPDATE THESE ID's: {}".format(next_gen_updates))
 
         # Next step is to update the nn at the specific indexes
@@ -409,9 +428,33 @@ if __name__ == "__main__":
             nn[update_id].model = nn[update_id].create_network()                        # Then update the model
             #print("\tto: {}".format(nn[update_id].hidden_layers))                       # Verify model update
 
-        # Display the graph:
-        graph_display(images, nn, counter_games, Gen_A.mutation_rate)
+        if VIEW_TRAINING:
+            # Display the graph:
+            graph_display(images, nn, counter_games, Gen_A.mutation_rate)
+        #'''
+        # Train all the dinos with collected data from the best dino
+        bad_n = int(np.asarray(nn[top_dino_id].states).shape[0] * .2)  # number of states to remove
+        top_states = nn[top_dino_id].states
+        top_states = np.stack(top_states, axis=0)[:-bad_n, :]
 
+        if temp_states is None:
+            temp_states = top_states
+        else:
+            temp_states = np.concatenate((temp_states, top_states), axis=0)         # will cause significant slowdowns
+
+        top_labels = nn[top_dino_id].labels
+        top_labels = np.stack(top_labels, axis=0)[:-bad_n, :]
+
+        if temp_labels is None:
+            temp_labels = top_labels
+        else:
+            temp_labels = np.concatenate((temp_labels, top_labels), axis=0)
+
+        
+        if counter_games + 1 < MAX_GAMES:
+            # train all the models on the top survivor's collected data
+            trainer(nn, temp_states, temp_labels)
+        #'''
 
     game_num = np.arange(counter_games)
     plot_ai_results(game_num, game_scores)
