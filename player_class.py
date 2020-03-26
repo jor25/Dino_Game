@@ -136,7 +136,7 @@ class player(object):
 
     # Putting player moves in generic function to allow model to select
     def do_move(self, move, game, walk_points, state):
-        #self.fitness = walk_points
+        self.fitness = walk_points
         #if np.array_equal(move, [0,0,0,1]):
         #    self.fitness -= 10
         if game.got_dodge_points:

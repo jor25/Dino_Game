@@ -41,7 +41,7 @@ else:
     POP_SIZE = 8   # Population size for AI, note: Performance slowdowns
 
 MAX_GAMES = 10
-MAX_ENEMIES = 3
+MAX_ENEMIES = 2
 
 # Setting up the networks as globals to keep them from getting wiped out with the main loop
 population = [CS.Dna(i, 5) for i in range(POP_SIZE)]            # All the different network architectures
@@ -68,18 +68,16 @@ class game(object):
         self.screen_height = screen_height                                          # Screen height
         self.window = pygame.display.set_mode((screen_width, screen_height))        # Game window
         self.bg = pygame.image.load('images/bg4.png').convert_alpha()               # Background image
-        #print(self.bg.get_size())
         self.bg_len = self.bg.get_size()[0]                                         # Background image width
-        #print(self.bg_len)
         self.crash = False                                                          # Collision
         self.players = [plc.player(200, 425, 45, 52, i, color[i]) for i in range(num_players)]    # Summon player class
-        self.population = num_players
+        self.population = num_players                                               # Number of players
         self.score = 0                                                              # Game score
         self.speed = 10                                                             # Game speed that will increment
-        self.got_points = False
-        self.dodge_points = 0
-        self.got_dodge_points = False
-        self.got_walk_points = False
+        self.got_points = False             # Flag for points
+        self.dodge_points = 0               # Actual dodge_points
+        self.got_dodge_points = False       # Flag for dodge_points
+        self.got_walk_points = False        # Flag for walk points
         # Make the bird sprites game objects and specifications
         self.bird_sprite = [pygame.image.load('images/bird_L1.png').convert_alpha(),
                             pygame.image.load('images/bird_L2.png').convert_alpha()]
@@ -304,19 +302,24 @@ def plot_ai_results(array_counter, array_score):
 
 
 def graph_display(images, population, gen_num, mut_rate):
+    '''
+    Dynamically plot the fitness values of the population every generation.
+    May also include a score subgraph and key for each of the dinosaurs.
+    :param images: List of matplotlib objects
+    :param population: The Neural Networks of each of the dinosaurs
+    :param gen_num: Current Generation number
+    :param mut_rate: The mutation rate of the genetic algorithm
+    :return: N/A
+    '''
     max_fitness = population[0].fit_vals[ np.argmax(population[0].fit_vals) ]
     pop_len = len(images) #int(len(images)*.05 + 1)   # for speed up - show only 5% of population
     for i in range(pop_len):    # population length
         images[i].set_ydata(population[i].fit_vals)
         images[i].set_xdata(np.arange(len(population[i].fit_vals)))
-        #img1.set_xlim()
-        #print("Hello {}".format(i))
 
         ax = plt.gca()
-        # recompute the ax.dataLim
-        ax.relim()
-        # update ax.viewLim using the new dataLim
-        ax.autoscale_view()
+        ax.relim()              # recompute the ax.dataLim
+        ax.autoscale_view()     # update ax.viewLim using the new dataLim
 
         temp_max = population[i].fit_vals[ np.argmax(population[i].fit_vals) ]
         if max_fitness < temp_max:
@@ -329,22 +332,35 @@ def graph_display(images, population, gen_num, mut_rate):
                  '      Pop Size: {}'
                  '      Mutation Rate: {}'.format(max_fitness, gen_num, len(population), mut_rate), fontsize=10)
 
-
     # Draw the plots and wait.
     plt.draw()
     plt.pause(1e-15)
     time.sleep(0.1)
 
 
-def trainer(networks, best_states, best_labels):
-    # Function to train the model for x epochs based on best of the generation collected data
+def trainer(networks, next_gen, best_states, best_labels):
+    '''
+    EXPERIMENTAL function to train the models for x epochs based on best of the generation's collected and labeled data.
+    Note that this function is still experimental and it causes significant performance issues at the moment.
+    :param networks:
+    :param next_gen:
+    :param best_states:
+    :param best_labels:
+    :return: N/A
+    '''
+
     print("state shape: {}\t label shape: {}".format(best_states.shape, best_labels.shape))
+
     # Train Model - loop through each and train accordingly
     for network in networks:
         # Reset all their states and labels
         network.states = []     # Full reset
         network.labels = []     # Full reset
-        network.model.fit(best_states, best_labels, epochs=1, verbose=1, shuffle=True)
+
+        # Added a section to only train the models that were just initialized, not the older ones.
+        if network.mod_id in next_gen:
+            print("--------------------\nTraining DINO {}".format(network.mod_id))
+            network.model.fit(best_states, best_labels, epochs=1, verbose=1, shuffle=True)
 
 
 if __name__ == "__main__":
@@ -359,11 +375,6 @@ if __name__ == "__main__":
         # Initialize all the plots
         temp_img, = plt.plot(Gen_A.population[i].fit_vals, np.arange(len(Gen_A.population[i].fit_vals)))
         images.append(temp_img)
-
-    # Set cactus specifications
-    cact_w = [25, 35, 45]
-    cact_h = [50, 70, 100]
-    cact_y = [420, 400, 370]
 
     # Initialize a few game variables
     counter_games = 0
@@ -429,9 +440,9 @@ if __name__ == "__main__":
             #print("\tto: {}".format(nn[update_id].hidden_layers))                       # Verify model update
 
         if VIEW_TRAINING:
-            # Display the graph:
+            # Display the dynamically updating graph:
             graph_display(images, nn, counter_games, Gen_A.mutation_rate)
-        #'''
+        '''
         # Train all the dinos with collected data from the best dino
         bad_n = int(np.asarray(nn[top_dino_id].states).shape[0] * .2)  # number of states to remove
         top_states = nn[top_dino_id].states
@@ -453,11 +464,9 @@ if __name__ == "__main__":
         
         if counter_games + 1 < MAX_GAMES:
             # train all the models on the top survivor's collected data
-            trainer(nn, temp_states, temp_labels)
+            trainer(nn, next_gen_updates, temp_states, temp_labels)
         #'''
 
     game_num = np.arange(counter_games)
     plot_ai_results(game_num, game_scores)
 
-    # Quit when exiting loop
-    #pygame.quit()
