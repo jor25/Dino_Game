@@ -21,8 +21,8 @@ class Dna:
         self.id = id                            # The populant's id number
         self.num_layers = chrom_num
         self.fit_vals = [0]                     # Accuracy scores to be added
-        self.input_layer = 16                   # Same number for each input
-        self.hidden_layers = [random.randint(1, 50) for i in range(self.num_layers)]       # Set various hidden layers randomly
+        self.input_layer = 14                   # Same number for each input
+        self.hidden_layers = [random.randint(1, 70) for i in range(self.num_layers)]       # Set hidden layers randomly
         self.output_layer = 4                   # Placeholder output layer
         self.history = [id]                     # List of all combinations
 
@@ -116,8 +116,8 @@ def get_state2(game, player, enemies):
     :param enemies: All enemies list
     :return: Give back a numpy label and state
     '''
-    state = np.zeros(16, dtype=int)     # state of 16
-
+    state = np.zeros(14, dtype=int)     # state of 16
+    '''
     # Am I on the ground or in the air
     if player.jumping:
         state[0] = 1
@@ -125,72 +125,72 @@ def get_state2(game, player, enemies):
     # Did dino crash?
     if game.crash:
         state[1] = 1
-
+    '''
     # Check all the enemies if any of these are true
     for enemy in enemies:
-        # Enemy Anywhere within 300 pixels of dino - Won't check if they aren't in range - slight speed up
-        if player.x + player.w < enemy.x < player.x + player.w + 300 \
-            or player.x > enemy.x + enemy.w > player.x - 300 \
-            or player.y > enemy.y + enemy.h and player.y - 300 < enemy.x + enemy.h \
-            or player.y + player.h < enemy.y < player.y + player.h + 300:
+        # Enemy Anywhere within 150 pixels of dino - Won't check if they aren't in range - slight speed up
+        if player.x + player.w < enemy.x < player.x + player.w + 150 \
+            or player.x > enemy.x + enemy.w > player.x - 150 \
+            or player.y > enemy.y + enemy.h and player.y - 150 < enemy.x + enemy.h \
+            or player.y + player.h < enemy.y < player.y + player.h + 150:
 
             # Directly ahead/behind - danger on my current y cords
-            if player.y < enemy.hitbox[1] + enemy.hitbox[3] and player.y + player.h > enemy.hitbox[1] and state[2] == 0:
-                state[2] = 1
+            if player.y < enemy.hitbox[1] + enemy.hitbox[3] and player.y + player.h > enemy.hitbox[1] and state[0] == 0:
+                state[0] = 1
 
             # Directly above/below - danger on my x cords
-            if player.x + player.w > enemy.hitbox[0] and player.x < enemy.hitbox[0] + enemy.hitbox[2] and state[3] == 0:
+            if player.x + player.w > enemy.hitbox[0] and player.x < enemy.hitbox[0] + enemy.hitbox[2] and state[1] == 0:
+                state[1] = 1
+
+            # The 50 pixel box range
+            # Enemy within 50 pixels ahead of dino
+            if player.x + player.w < enemy.x < player.x + player.w + 50 and state[2] == 0:
+                state[2] = 1
+
+            # Enemy within 50 pixels behind dino
+            if player.x > enemy.x + enemy.w > player.x - 50 and state[3] == 0:
                 state[3] = 1
 
-            # The 100 pixel box range
-            # Enemy within 100 pixels ahead of dino
-            if player.x + player.w < enemy.x < player.x + player.w + 100 and state[4] == 0:
+            # Enemy within 50 pixels above dino
+            if player.y > enemy.y + enemy.h and player.y - 50 < enemy.x + enemy.h and state[4] == 0:
                 state[4] = 1
 
-            # Enemy within 100 pixels behind dino
-            if player.x > enemy.x + enemy.w > player.x - 100 and state[5] == 0:
+            # Enemy within 50 pixels below dino
+            if player.y + player.h < enemy.y < player.y + player.h + 50 and state[5] == 0:
                 state[5] = 1
 
-            # Enemy within 100 pixels above dino
-            if player.y > enemy.y + enemy.h and player.y - 100 < enemy.x + enemy.h and state[6] == 0:
+            # The 100 pixel box range
+            # Enemy within 100 pixels behind dino
+            if player.x + player.w < enemy.x < player.x + player.w + 100 and state[6] == 0:
                 state[6] = 1
 
-            # Enemy within 100 pixels below dino
-            if player.y + player.h < enemy.y < player.y + player.h + 100 and state[7] == 0:
+            # Enemy within 100 pixels behind dino
+            if player.x > enemy.x + enemy.w > player.x - 100 and state[7] == 0:
                 state[7] = 1
 
-            # The 200 pixel box range
-            # Enemy within 200 pixels behind dino
-            if player.x + player.w < enemy.x < player.x + player.w + 200 and state[8] == 0:
+            # Enemy within 100 pixels above dino
+            if player.y > enemy.y + enemy.h and player.y - 100 < enemy.x + enemy.h and state[8] == 0:
                 state[8] = 1
 
-            # Enemy within 200 pixels behind dino
-            if player.x > enemy.x + enemy.w > player.x - 200 and state[9] == 0:
+            # Enemy within 100 pixels below dino
+            if player.y + player.h < enemy.y < player.y + player.h + 100 and state[9] == 0:
                 state[9] = 1
 
-            # Enemy within 200 pixels above dino
-            if player.y > enemy.y + enemy.h and player.y - 200 < enemy.x + enemy.h and state[10] == 0:
+            # The 150 pixel box range
+            # Enemy within 150 pixels behind dino
+            if player.x + player.w < enemy.x < player.x + player.w + 150 and state[10] == 0:
                 state[10] = 1
 
-            # Enemy within 200 pixels below dino
-            if player.y + player.h < enemy.y < player.y + player.h + 200 and state[11] == 0:
+            # Enemy within 150 pixels behind dino
+            if player.x > enemy.x + enemy.w > player.x - 150 and state[11] == 0:
                 state[11] = 1
 
-            # The 300 pixel box range
-            # Enemy within 300 pixels behind dino
-            if player.x + player.w < enemy.x < player.x + player.w + 300 and state[12] == 0:
+            # Enemy within 150 pixels above dino
+            if player.y > enemy.y + enemy.h and player.y - 150 < enemy.x + enemy.h and state[12] == 0:
                 state[12] = 1
 
-            # Enemy within 300 pixels behind dino
-            if player.x > enemy.x + enemy.w > player.x - 300 and state[13] == 0:
+            # Enemy within 150 pixels below dino
+            if player.y + player.h < enemy.y < player.y + player.h + 150 and state[13] == 0:
                 state[13] = 1
-
-            # Enemy within 300 pixels above dino
-            if player.y > enemy.y + enemy.h and player.y - 300 < enemy.x + enemy.h and state[14] == 0:
-                state[14] = 1
-
-            # Enemy within 300 pixels below dino
-            if player.y + player.h < enemy.y < player.y + player.h + 300 and state[15] == 0:
-                state[15] = 1
 
     return state

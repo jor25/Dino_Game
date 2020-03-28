@@ -106,12 +106,12 @@ class player(object):
         self.hitbox = (self.x+2, self.y+2, self.w-3, self.h-3)      # This may be a bit redundant
         #'''
         pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
-        pygame.draw.rect(win, (255, 165, 0), (self.hitbox[0] - 100, self.hitbox[1] - 100,
-                                              self.hitbox[2] + 200, self.hitbox[3] + 200), 2)  # Draw yellow sensory box
-        pygame.draw.rect(win, (255, 255, 0), (self.hitbox[0] - 200, self.hitbox[1] - 200,
-                                              self.hitbox[2] + 400, self.hitbox[3] + 400), 2)  # Draw orange sensory box
-        pygame.draw.rect(win, (0, 255, 0), (self.hitbox[0] - 300, self.hitbox[1] - 300,
-                                            self.hitbox[2] + 600, self.hitbox[3] + 600), 2)  # Draw green sensory box
+        pygame.draw.rect(win, (255, 165, 0), (self.hitbox[0] - 50, self.hitbox[1] - 50,
+                                              self.hitbox[2] + 100, self.hitbox[3] + 100), 2)  # Draw yellow sensory box
+        pygame.draw.rect(win, (255, 255, 0), (self.hitbox[0] - 100, self.hitbox[1] - 100,
+                                              self.hitbox[2] + 200, self.hitbox[3] + 200), 2)  # Draw orange sensory box
+        pygame.draw.rect(win, (0, 255, 0), (self.hitbox[0] - 150, self.hitbox[1] - 150,
+                                            self.hitbox[2] + 300, self.hitbox[3] + 300), 2)  # Draw green sensory box
         #'''
 
     # Don't really need this function of generic game
@@ -136,11 +136,14 @@ class player(object):
 
     # Putting player moves in generic function to allow model to select
     def do_move(self, move, game, walk_points, state):
+        self.fitness = game.dodge_points * 10
+        '''
         self.fitness = walk_points
         #if np.array_equal(move, [0,0,0,1]):
         #    self.fitness -= 10
         if game.got_dodge_points:
             self.fitness += 10
+        '''
         '''
         if self.alive == False:
             self.fitness -= 10

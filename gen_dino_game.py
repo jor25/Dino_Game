@@ -49,7 +49,7 @@ nn = [CS.Collection(population[i]) for i in range(POP_SIZE)]    # The actual net
 personal_scores = [[] for i in range(POP_SIZE)]
 
 # Setting initial colors of dinosaurs
-color = ["#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(POP_SIZE)]
+COLOR = ["#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(POP_SIZE)]
 
 if VIEW_TRAINING:
     clock = pygame.time.Clock()
@@ -71,7 +71,7 @@ class game(object):
         self.bg = pygame.image.load('images/bg4.png').convert_alpha()               # Background image
         self.bg_len = self.bg.get_size()[0]                                         # Background image width
         self.crash = False                                                          # Collision
-        self.players = [plc.player(200, 425, 45, 52, i, color[i]) for i in range(num_players)]    # Summon player class
+        self.players = [plc.player(200, 425, 45, 52, i, COLOR[i]) for i in range(num_players)]    # Summon player class
         self.population = num_players                                               # Number of players
         self.score = 0                                                              # Game score
         self.speed = 10                                                             # Game speed that will increment
@@ -89,9 +89,9 @@ class game(object):
 
         # Set cactus sprite object specifications
         self.cactus_sprite = [pygame.image.load('images/cactus_1.png').convert_alpha()]
-        self.cact_w = [25, 35, 45]      # Cactus widths
-        self.cact_h = [50, 70, 100]     # Cactus heights
-        self.cact_y = [420, 400, 370]   # Cactus initial y coordinates
+        self.cact_w = [25, 35, 40]      # Cactus widths
+        self.cact_h = [50, 70, 80]     # Cactus heights
+        self.cact_y = [420, 400, 390]   # Cactus initial y coordinates
 
         self.Enemies = [self.init_enemies(i) for i in range(max_enemies)]       # Summon list of enemies
         self.max_enemies = max_enemies                                          # Max Enemies
@@ -197,7 +197,7 @@ class game(object):
 
                     elif NEURAL_PLAYER:         # Use the neural network to make a prediction
                         state = CS.get_state2(self, DINO, self.Enemies)     # Making some states
-                        restate = np.reshape(state, (-1, 16))               # Reshape to fit the model input
+                        restate = np.reshape(state, (-1, 14))               # Reshape to fit the model input
                         prediction = nn[index].model.predict(restate)       # Predict with specific model
                         # print(prediction)
                         final_move = [0, 0, 0, 0]                   # Initialize empty move
@@ -206,7 +206,8 @@ class game(object):
                         ##print("Dino: {}\t\tFinal_move: {}\t\tState: {}".format(DINO.id, final_move, state))
                         DINO.do_move(final_move, self, walk_points, state)  # Do new move and get new state
 
-                        if walk_points % 5 == 0:    # Collect states every 5 walkpoints
+                        #if walk_points % 5 == 0:    # Collect states every 5 walkpoints
+                        if not np.array_equal(state, np.zeros(14, dtype=int)):              # Collect if content in state
                             nn[DINO.id].labels.append(np.asarray(final_move, dtype=int))    # Collect labels while alive
                             nn[DINO.id].states.append(state)                                # Collect states while alive
 
@@ -365,9 +366,9 @@ def trainer(networks, next_gen, best_states, best_labels):
         network.labels = []     # Full reset
 
         # Added a section to only train the models that were just initialized, not the older ones.
-        if network.mod_id in next_gen:
-            print("--------------------\nTraining DINO {}".format(network.mod_id))
-            network.model.fit(best_states, best_labels, epochs=1, verbose=1, shuffle=True)
+        #if network.mod_id in next_gen:
+        print("--------------------\nTraining DINO {}".format(network.mod_id))
+        network.model.fit(best_states, best_labels, epochs=1, verbose=1, shuffle=True)
 
 
 if __name__ == "__main__":
@@ -439,15 +440,15 @@ if __name__ == "__main__":
 
         # Next step is to update the nn at the specific indexes
         for update_id in next_gen_updates:
-            #print("Updating nn[{}] from {} with {}".format(update_id, nn[update_id].hidden_layers, Gen_A.population[update_id].hidden_layers))
-            #nn[update_id].hidden_layers = Gen_A.population[update_id].hidden_layers     # Update the hidden layers
             nn[update_id].model = nn[update_id].create_network()                        # Then update the model
             #print("\tto: {}".format(nn[update_id].hidden_layers))                       # Verify model update
 
         if VIEW_TRAINING:
-            # Display the dynamically updating graph:
+            # Display the dynamically updating graph after each generation
             graph_display(images, nn, counter_games, Gen_A.mutation_rate)
+
         '''
+        # EXPERIMENTAL
         # Train all the dinos with collected data from the best dino
         bad_n = int(np.asarray(nn[top_dino_id].states).shape[0] * .2)  # number of states to remove
         top_states = nn[top_dino_id].states

@@ -16,7 +16,6 @@ class Gen_alg:
         self.chrom_num = 5  # 100                                 # How large is the DNA sequence?
         self.population = networks #[DNA(id, self.chrom_num) for id in range(self.pop_num)]
         self.survivors = np.zeros(self.remaining)  # Survivors per generation
-        #self.func = np.random.choice(35, self.chrom_num)
 
     def check_fitness(self, dinos):  # Take the top half of the population of them
         '''
@@ -46,21 +45,11 @@ class Gen_alg:
         term_ind = np.argpartition(pop_fits, self.remaining)[:self.remaining]  # Index of the terminated
         print("Terminated indexes: {}\tTerm_fit_vals: {}".format(term_ind, pop_fits[term_ind]))
 
-        '''
-        # Keep some of the weaker ones by chance, give them 5% chance survival to improve diversity
-        luck_ind = np.random.choice(self.remaining - 1, size=(int(self.remaining * .05)), replace=False)    # select 5 % of indeces
-        for i in range(len(luck_ind)):           # Replace some survivors with those that technically wouldn't have made it
-            temp = term_ind[luck_ind[i]]    # Doing this for diversity...
-            term_ind[luck_ind[i]] = surv_ind[luck_ind[i]]
-            surv_ind[luck_ind[i]] = temp
-        #'''
-
         parents = self.pair_off(surv_ind)
         for i in range(len(parents)):
             # print("****** Old_child: {} ******".format(self.population[term_ind[i]].hidden_layers))
             self.cross_over(parents[i], term_ind[i])  # Parent pair and the ID they replace
             # print("****** New_child: {} ******".format(self.population[term_ind[i]].hidden_layers))
-        #print("Function: {}".format(function))
 
         return term_ind, top_dino     # Let me know which ones to update, and the best of the population
 
@@ -75,7 +64,7 @@ class Gen_alg:
     def cross_over(self, parents, ch_id):  # Recombine the existing survivors
         parent_1 = self.population[parents[0]].hidden_layers  # Initialize parent 1 np array
         parent_2 = self.population[parents[1]].hidden_layers  # Initialize parent 2 np array
-        '''
+        #'''
         # Merge the survivors at some crossover point - randomly?
         split = int(np.random.uniform(low=1, high=len(parent_1) - 1))   # Choose random point between 1 and parent length
         child = np.hstack([parent_1[:split], parent_2[split:]])         # Take first chunk from parent 1, 2nd chunk parent 2
@@ -83,16 +72,15 @@ class Gen_alg:
         #print("Parent_id's: = {}\nParents are: {}, {}\nChild_id: {}\nThe Child: {}".format(parents, parent_1, parent_2, ch_id, child))
 
         self.population[ch_id].hidden_layers = child    # Check this works outside...
+        #'''
         '''
         # Alternate crossover
         for i in range(len(parent_1)):
             self.population[ch_id].hidden_layers[i] = np.random.choice(
                 [parent_1[i], parent_2[i]])  # Choose one of these randomly
         child = self.population[ch_id].hidden_layers
-
+        '''
         self.mutation(child, ch_id)
-        #self.population[ch_id].history.append([parents[0], parents[1]])  # Add parents to history
-        # pass
 
     def mutation(self, child, ch_id):
         # if 1, then we mutate.
