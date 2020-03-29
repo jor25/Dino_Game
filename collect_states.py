@@ -2,15 +2,15 @@
 # Train NN after human plays.
 # 11/21/19
 
-
+from manual_nn import *
 import random
 import numpy as np
 import pandas as pd
-from operator import add
-from keras.optimizers import Adam
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout
-import keras.losses as kl
+#from operator import add
+#from keras.optimizers import Adam
+#from keras.models import Sequential
+#from keras.layers.core import Dense, Dropout
+#import keras.losses as kl
 
 '''
 Class for each individual in the population will be built off this information.
@@ -21,7 +21,7 @@ class Dna:
         self.id = id                            # The populant's id number
         self.num_layers = chrom_num
         self.fit_vals = [0]                     # Accuracy scores to be added
-        self.input_layer = 14                   # Same number for each input
+        self.input_layer = 10                   # Same number for each input
         self.hidden_layers = [random.randint(1, 70) for i in range(self.num_layers)]       # Set hidden layers randomly
         self.output_layer = 4                   # Placeholder output layer
         self.history = [id]                     # List of all combinations
@@ -37,11 +37,14 @@ class Collection():
         self.input_layer = dna.input_layer
         self.hidden_layers = dna.hidden_layers
         self.output_layer = dna.output_layer
-        self.model = self.create_network()  # No initial weights
+        self.model = self.manual_network() #self.create_network()  # No initial weights
         self.fit_vals = dna.fit_vals    # [0]
         self.states = []    # 16 inputs
         self.labels = []    # 4 outputs
         #self.model = self.create_network("weight_files/nn_3.hdf5")  # Using my trained weights
+
+    def manual_network(self, weights=None):
+        pass
 
     def create_network(self, weights=None):
         # Create my model
@@ -116,7 +119,7 @@ def get_state2(game, player, enemies):
     :param enemies: All enemies list
     :return: Give back a numpy label and state
     '''
-    state = np.zeros(14, dtype=int)     # state of 16
+    state = np.zeros(10, dtype=int)     # state of 16
     '''
     # Am I on the ground or in the air
     if player.jumping:
@@ -175,7 +178,7 @@ def get_state2(game, player, enemies):
             # Enemy within 100 pixels below dino
             if player.y + player.h < enemy.y < player.y + player.h + 100 and state[9] == 0:
                 state[9] = 1
-
+            '''
             # The 150 pixel box range
             # Enemy within 150 pixels behind dino
             if player.x + player.w < enemy.x < player.x + player.w + 150 and state[10] == 0:
@@ -192,5 +195,6 @@ def get_state2(game, player, enemies):
             # Enemy within 150 pixels below dino
             if player.y + player.h < enemy.y < player.y + player.h + 150 and state[13] == 0:
                 state[13] = 1
+            '''
 
     return state

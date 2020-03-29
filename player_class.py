@@ -110,6 +110,7 @@ class player(object):
                                               self.hitbox[2] + 100, self.hitbox[3] + 100), 2)  # Draw yellow sensory box
         pygame.draw.rect(win, (255, 255, 0), (self.hitbox[0] - 100, self.hitbox[1] - 100,
                                               self.hitbox[2] + 200, self.hitbox[3] + 200), 2)  # Draw orange sensory box
+        '''
         pygame.draw.rect(win, (0, 255, 0), (self.hitbox[0] - 150, self.hitbox[1] - 150,
                                             self.hitbox[2] + 300, self.hitbox[3] + 300), 2)  # Draw green sensory box
         #'''

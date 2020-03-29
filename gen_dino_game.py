@@ -20,6 +20,10 @@ import player_class as plc
 import enemy_class as enc
 import gen_alg as ga
 
+from manual_nn import *
+# *************************************************************************************
+# GLOBAL CONFIGS
+# *************************************************************************************
 G_SCREEN_WIDTH = 800
 G_SCREEN_HEIGHT = 500
 
@@ -38,10 +42,10 @@ if HUMAN:
     POP_SIZE = 1   # Population size for human player
 else:
     FPS = 100      # Game fps - for AI, go fast!
-    POP_SIZE = 20  # Population size for AI, note: Performance slowdowns
+    POP_SIZE = 10  # Population size for AI, note: Performance slowdowns
 
-MAX_GAMES = 10
-MAX_ENEMIES = 2
+MAX_GAMES = 15
+MAX_ENEMIES = 1
 
 # Setting up the networks as globals to keep them from getting wiped out with the main loop
 population = [CS.Dna(i, 5) for i in range(POP_SIZE)]            # All the different network architectures
@@ -53,6 +57,17 @@ COLOR = ["#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)]) fo
 
 if VIEW_TRAINING:
     clock = pygame.time.Clock()
+
+
+# The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
+sol_per_pop = POP_SIZE
+num_weights = n_x*n_h + n_h*n_h2 + n_h2*n_y
+
+# Defining the population size.
+pop_size = (sol_per_pop,num_weights)        # 50, 321
+#Creating the initial population. of however many weights - they will be between -1 and 1
+new_population = np.random.choice(np.arange(-1,1,step=0.01),size=pop_size,replace=True)
+num_parents_mating = 12
 
 
 class game(object):
@@ -197,8 +212,12 @@ class game(object):
 
                     elif NEURAL_PLAYER:         # Use the neural network to make a prediction
                         state = CS.get_state2(self, DINO, self.Enemies)     # Making some states
-                        restate = np.reshape(state, (-1, 14))               # Reshape to fit the model input
+                        restate = np.reshape(state, (-1, 10))               # Reshape to fit the model input
+                        '''
                         prediction = nn[index].model.predict(restate)       # Predict with specific model
+                        '''
+                        prediction = forward_propagation(restate, new_population[index])
+
                         # print(prediction)
                         final_move = [0, 0, 0, 0]                   # Initialize empty move
                         final_move[np.argmax(prediction[0])] = 1    # Set model's top prediction = 1
@@ -207,7 +226,7 @@ class game(object):
                         DINO.do_move(final_move, self, walk_points, state)  # Do new move and get new state
 
                         #if walk_points % 5 == 0:    # Collect states every 5 walkpoints
-                        if not np.array_equal(state, np.zeros(14, dtype=int)):              # Collect if content in state
+                        if not np.array_equal(state, np.zeros(10, dtype=int)):              # Collect if content in state
                             nn[DINO.id].labels.append(np.asarray(final_move, dtype=int))    # Collect labels while alive
                             nn[DINO.id].states.append(state)                                # Collect states while alive
 
@@ -221,7 +240,8 @@ class game(object):
                         moving_bg = 0
 
                     if self.score == 1000:              # Arbitrary number to save the model at
-                        nn[index].model.save_weights('weight_files/Dino[{}]got_1000_points.hdf5'.format(index))
+                        #nn[index].model.save_weights('weight_files/Dino[{}]got_1000_points.hdf5'.format(index))
+                        self.crash = True       # Crash it
                         print("Weights Saved!")
                     # print("dino.x = {}, dino.y ={}".format(DINO.x, DINO.y))
 
@@ -260,7 +280,7 @@ def draw_window(font, Game, Dinos, Birds, mv_bg, record, final_move, remaining_d
 
     # Placing text on the screen
     all_text = "Gen #: {}   RECORD: {}\nPOP # {}/{}   SCORE: {}".format(
-        counter_games, record, remaining_dinos, Game.population, Game.score)
+        counter_games + 1, record, remaining_dinos, Game.population, Game.score)
     temp = all_text.split('\n')
     rendered_text_1 = font.render(temp[0], True, (255, 0, 0))
     rendered_text_2 = font.render(temp[1], True, (255, 0, 0))
@@ -376,7 +396,7 @@ if __name__ == "__main__":
 
     # Initialize a few game variables
     counter_games = 0       # Keep track of what game we're on
-    game_scores = []        # Used for plotting later on
+    game_scores = [0]        # Used for plotting later on
     record = 0              # Keep track of the high scores
     temp_states = None      # EXPERIMENTAL list of states
     temp_labels = None      # EXPERIMENTAL list of labels
@@ -414,7 +434,7 @@ if __name__ == "__main__":
 
         # The main game loop
         record, walk_points = Game.main_game(enemy_cd, dist_low, dist_high, living_dinos, walk_points, record, moving_bg)
-
+        print("After {}".format(new_population[0]))
         if HUMAN:  # Save run to file and quit before new run if human.
             # New data
             #CS.write_data(states_list)
@@ -434,15 +454,18 @@ if __name__ == "__main__":
 
         game_scores.append(Game.score)
 
+        print("Before {}".format(new_population[0]))
         # Activate GA! Get a list of indexes to update and the best dino
-        next_gen_updates, top_dino_id = Gen_A.check_fitness(Dinos)
+        next_gen_updates, top_dino_id = Gen_A.check_fitness(Dinos, new_population)
+        print("After {}".format(new_population[0]))
         print("UPDATE THESE ID's: {}".format(next_gen_updates))
 
+        '''
         # Next step is to update the nn at the specific indexes
         for update_id in next_gen_updates:
             nn[update_id].model = nn[update_id].create_network()                        # Then update the model
             #print("\tto: {}".format(nn[update_id].hidden_layers))                       # Verify model update
-
+        '''
         if VIEW_TRAINING:
             # Display the dynamically updating graph after each generation
             graph_display(images, nn, counter_games, Gen_A.mutation_rate)
@@ -473,6 +496,6 @@ if __name__ == "__main__":
             trainer(nn, next_gen_updates, temp_states, temp_labels)
         #'''
 
-    game_num = np.arange(counter_games)
+    game_num = np.arange(counter_games+1)
     plot_ai_results(game_num, game_scores)
 

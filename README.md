@@ -52,3 +52,5 @@
     * https://htmlcolorcodes.com/
 * Random Color generation:
     * https://stackoverflow.com/questions/28999287/generate-random-colors-rgb
+* Manual implementation of Neural network:
+    * https://github.com/TheAILearner/Training-Snake-Game-With-Genetic-Algorithm
