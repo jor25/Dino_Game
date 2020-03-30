@@ -54,3 +54,7 @@
     * https://stackoverflow.com/questions/28999287/generate-random-colors-rgb
 * Manual implementation of Neural network:
     * https://github.com/TheAILearner/Training-Snake-Game-With-Genetic-Algorithm
+* Remove leading Zeros:
+    * https://docs.scipy.org/doc/numpy/reference/generated/numpy.trim_zeros.html
+* Numpy Neural Network Example Article:
+    * https://towardsdatascience.com/lets-code-a-neural-network-in-plain-numpy-ae7e74410795

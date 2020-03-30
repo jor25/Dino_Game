@@ -31,6 +31,9 @@ G_SCREEN_HEIGHT = 500
 # Viewing variable: True if I want to see the game in action
 VIEW_TRAINING = True
 
+# True if I want to see dynamic graphing
+VIEW_GRAPHING = True
+
 # Activate Human Player:
 HUMAN = False
 
@@ -38,7 +41,7 @@ HUMAN = False
 NEURAL_PLAYER = not HUMAN
 
 if HUMAN:
-    FPS = 30       # This will hurt your eyes less
+    FPS = 70       # This will hurt your eyes less
     POP_SIZE = 1   # Population size for human player
 else:
     FPS = 100      # Game fps - for AI, go fast!
@@ -64,10 +67,10 @@ sol_per_pop = POP_SIZE
 num_weights = n_x*n_h + n_h*n_h2 + n_h2*n_y
 
 # Defining the population size.
-pop_size = (sol_per_pop,num_weights)        # 50, 321
+pop_size = (sol_per_pop, num_weights)        # 50, 321
+
 #Creating the initial population. of however many weights - they will be between -1 and 1
 new_population = np.random.choice(np.arange(-1,1,step=0.01),size=pop_size,replace=True)
-num_parents_mating = 12
 
 
 class game(object):
@@ -149,7 +152,6 @@ class game(object):
             if VIEW_TRAINING:
                 clock.tick(FPS)         # Clock FPS if training viewable
 
-            keys = pygame.key.get_pressed()     # Get what the user selected
             enemy_cd += 1                       # Cooldown for enemies
             walk_points += 1                    # Walking points
 
@@ -203,7 +205,7 @@ class game(object):
 
                     if HUMAN:       # Global human flag is activated
                         final_move = UA.active_player(DINO)
-                        DINO.do_move(final_move, self, walk_points)  # Perform new move and get new state
+                        DINO.do_move(final_move, self)  # Perform new move and get new state
 
                         if not np.array_equal(final_move, [1, 0, 0, 0]) or walk_points % 100 == 0:
                             state = CS.get_state2(self, DINO, self.Enemies)  # Making some states
@@ -223,7 +225,7 @@ class game(object):
                         final_move[np.argmax(prediction[0])] = 1    # Set model's top prediction = 1
                         # Use the below for Debugging
                         ##print("Dino: {}\t\tFinal_move: {}\t\tState: {}".format(DINO.id, final_move, state))
-                        DINO.do_move(final_move, self, walk_points, state)  # Do new move and get new state
+                        DINO.do_move(final_move, self)  # Do new move and get new state
 
                         #if walk_points % 5 == 0:    # Collect states every 5 walkpoints
                         if not np.array_equal(state, np.zeros(10, dtype=int)):              # Collect if content in state
@@ -406,10 +408,12 @@ if __name__ == "__main__":
         states_list = []
         label_list = []
 
-    if VIEW_TRAINING:
+    if VIEW_GRAPHING:
         # Initialize Matplotlib figure, the game variable, and font
         fig = plt.figure()
-        pygame.init()
+
+    if VIEW_TRAINING:
+        pygame.init()   # Initialize pygame
         font = pygame.font.SysFont('comicsansms', 40, True)     # Font to display on screen
 
     for i in range(len(Gen_A.population)):
@@ -434,7 +438,7 @@ if __name__ == "__main__":
 
         # The main game loop
         record, walk_points = Game.main_game(enemy_cd, dist_low, dist_high, living_dinos, walk_points, record, moving_bg)
-        print("After {}".format(new_population[0]))
+        #print("After {}".format(new_population[0]))
         if HUMAN:  # Save run to file and quit before new run if human.
             # New data
             #CS.write_data(states_list)
@@ -454,47 +458,14 @@ if __name__ == "__main__":
 
         game_scores.append(Game.score)
 
-        print("Before {}".format(new_population[0]))
         # Activate GA! Get a list of indexes to update and the best dino
         next_gen_updates, top_dino_id = Gen_A.check_fitness(Dinos, new_population)
-        print("After {}".format(new_population[0]))
         print("UPDATE THESE ID's: {}".format(next_gen_updates))
 
-        '''
-        # Next step is to update the nn at the specific indexes
-        for update_id in next_gen_updates:
-            nn[update_id].model = nn[update_id].create_network()                        # Then update the model
-            #print("\tto: {}".format(nn[update_id].hidden_layers))                       # Verify model update
-        '''
-        if VIEW_TRAINING:
+
+        if VIEW_GRAPHING:
             # Display the dynamically updating graph after each generation
             graph_display(images, nn, counter_games, Gen_A.mutation_rate)
-
-        '''
-        # EXPERIMENTAL
-        # Train all the dinos with collected data from the best dino
-        bad_n = int(np.asarray(nn[top_dino_id].states).shape[0] * .2)  # number of states to remove
-        top_states = nn[top_dino_id].states
-        top_states = np.stack(top_states, axis=0)[:-bad_n, :]
-
-        if temp_states is None:
-            temp_states = top_states
-        else:
-            temp_states = np.concatenate((temp_states, top_states), axis=0)         # will cause significant slowdowns
-
-        top_labels = nn[top_dino_id].labels
-        top_labels = np.stack(top_labels, axis=0)[:-bad_n, :]
-
-        if temp_labels is None:
-            temp_labels = top_labels
-        else:
-            temp_labels = np.concatenate((temp_labels, top_labels), axis=0)
-
-        
-        if counter_games + 1 < MAX_GAMES:
-            # train all the models on the top survivor's collected data
-            trainer(nn, next_gen_updates, temp_states, temp_labels)
-        #'''
 
     game_num = np.arange(counter_games+1)
     plot_ai_results(game_num, game_scores)

@@ -136,24 +136,8 @@ class player(object):
             self.jump_height = 10
 
     # Putting player moves in generic function to allow model to select
-    def do_move(self, move, game, walk_points, state):
+    def do_move(self, move, game):
         self.fitness = game.dodge_points * 10
-        '''
-        self.fitness = walk_points
-        #if np.array_equal(move, [0,0,0,1]):
-        #    self.fitness -= 10
-        if game.got_dodge_points:
-            self.fitness += 10
-        '''
-        '''
-        if self.alive == False:
-            self.fitness -= 10
-
-        if game.got_walk_points:        # got walk points
-            self.fitness += 1
-            #if np.array_equal(move, [0,0,0,1]) and 0 not in state[[2,3,4,5,6,7]]:     # Jumping with nothing in range 100
-            #   self.fitness -= 5
-        '''
 
         if np.array_equal(move, [1,0,0,0]) and not self.jumping:    # Dino will just stay where it is if not jumping
             self.x = self.x

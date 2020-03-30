@@ -1,15 +1,14 @@
 # Genetic Algorithm to manage my nn's. This is borrowed from the genetic algorithm tuning directory.
 # Random with Choices - https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.random.choice.html
 import numpy as np
-import random as rand
-import gen_dino_game as gdg
+
 '''
 Genetic algorithm class will manage network tuning.
 '''
 class Gen_alg:
     def __init__(self, pop_size, networks):
         self.pop_num = pop_size #12  # 500               # Population Number
-        self.remaining = int(self.pop_num * .8)#/ 2)
+        self.remaining = int(self.pop_num * .6)#/ 2)
         self.gen_num = 100  # Number of generations
         self.mutation_rate = .20  # How likely are we to mutate
         self.mut_val = .50  # How much mutation
@@ -61,27 +60,6 @@ class Gen_alg:
         # print("parv1: {}\nparv2: {}\npar_all: {}".format(par_v1, par_v2, parents))    # Verify
         return parents
 
-    def cross_over(self, parents, ch_id):  # Recombine the existing survivors
-        parent_1 = self.population[parents[0]].hidden_layers  # Initialize parent 1 np array
-        parent_2 = self.population[parents[1]].hidden_layers  # Initialize parent 2 np array
-        #'''
-        # Merge the survivors at some crossover point - randomly?
-        split = int(np.random.uniform(low=1, high=len(parent_1) - 1))   # Choose random point between 1 and parent length
-        child = np.hstack([parent_1[:split], parent_2[split:]])         # Take first chunk from parent 1, 2nd chunk parent 2
-
-        #print("Parent_id's: = {}\nParents are: {}, {}\nChild_id: {}\nThe Child: {}".format(parents, parent_1, parent_2, ch_id, child))
-
-        self.population[ch_id].hidden_layers = child    # Check this works outside...
-        #'''
-        '''
-        # Alternate crossover
-        for i in range(len(parent_1)):
-            self.population[ch_id].hidden_layers[i] = np.random.choice(
-                [parent_1[i], parent_2[i]])  # Choose one of these randomly
-        child = self.population[ch_id].hidden_layers
-        '''
-        self.mutation(child, ch_id)
-
     def cross_over2(self, parents, ch_id, brains):
         parent_1 = brains[parents[0]]   # Initialize parent 1 np array
         parent_2 = brains[parents[1]]   # Initialize parent 2 np array
@@ -89,7 +67,6 @@ class Gen_alg:
         #print("Before: {}".format(brains[ch_id]))
         # Basic split
         num_crosses = int(np.random.uniform(low=1, high=int(len(parent_1)/2 - 1)))      # How many times am I swapping
-        #splits = [int(np.random.uniform(low=1, high=len(parent_1) - 1)) for i in num_crosses]       # choose 1 random crossover point
         splits = np.random.choice(len(parent_1)-1, num_crosses, replace=False)      # All the places to split the list
         parts = np.trim_zeros(np.sort(splits))      # Sort and remove Zero from start
 
@@ -107,34 +84,11 @@ class Gen_alg:
             else:           # All our other cases
                 brains[ch_id][parts[i-1]:part] = parent_x[parts[i-1]:part]
 
-
         #print("After: {}".format(brains[ch_id]))
         self.mutation2(ch_id, brains)
 
-    def mutation(self, child, ch_id):
-        # if 1, then we mutate.
-        if np.random.choice([0, 1], p=[1 - self.mutation_rate, self.mutation_rate]):
-
-            num_cells = int(np.random.choice(len(child), 1) * self.mutation_rate)  # How many cells to replace, 5%
-            mut_ind = np.random.choice(len(child), num_cells, replace=False)  # Choose from these indeces
-
-            for ind in mut_ind:
-                self.mut_val = rand.uniform(0, 1)  # Choose how random of a change, percentage
-                operation = np.random.choice(['+', '-'])
-                if operation == '+':  # Increase by 20%
-                    self.population[ch_id].hidden_layers[ind] += int(
-                        self.mut_val * self.population[ch_id].hidden_layers[ind])
-                    # pass
-                else:  # Decrease by 20%
-                    self.population[ch_id].hidden_layers[ind] -= int(
-                        self.mut_val * self.population[ch_id].hidden_layers[ind])
-                    # pass
-            #print("{}'s MUTATION: {}".format(ch_id, self.population[ch_id].hidden_layers))
-
-
     def mutation2(self, ch_id, brains):
-
         for i in range(len(brains)):
             # if 1, then we mutate. Random chance of mutation
             if np.random.choice([0, 1], p=[1 - self.mutation_rate, self.mutation_rate]):
-                brains[ch_id][i] = np.random.uniform(-1.0, 1.0, 1)     # Set the brain
+                brains[ch_id][i] += np.random.choice(np.arange(-1, 1, step=0.001)) # Set the brain

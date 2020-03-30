@@ -5,7 +5,6 @@
 from manual_nn import *
 import random
 import numpy as np
-import pandas as pd
 #from operator import add
 #from keras.optimizers import Adam
 #from keras.models import Sequential
@@ -30,9 +29,6 @@ class Dna:
 class Collection():
     def __init__(self, dna):
         self.learning_rate = 0.001
-        #self.model = self.network()
-        #self.model = self.network("model_files/nn_01.hdf5")
-
         self.mod_id = dna.id
         self.input_layer = dna.input_layer
         self.hidden_layers = dna.hidden_layers
@@ -41,48 +37,9 @@ class Collection():
         self.fit_vals = dna.fit_vals    # [0]
         self.states = []    # 16 inputs
         self.labels = []    # 4 outputs
-        #self.model = self.create_network("weight_files/nn_3.hdf5")  # Using my trained weights
 
     def manual_network(self, weights=None):
         pass
-
-    def create_network(self, weights=None):
-        # Create my model
-        model = Sequential()
-        model.add(Dense(output_dim=self.hidden_layers[0], activation='relu', input_dim=self.input_layer))    # Input
-        for i in range(1, len(self.hidden_layers)):
-            model.add(Dense(output_dim=self.hidden_layers[i], activation='relu'))           # Add all hidden layers
-            model.add(Dropout(0.15))
-        model.add(Dense(output_dim=self.output_layer, activation='softmax'))                # Output layer
-        opt = Adam(self.learning_rate)      # Set learning rate
-
-        # Compile model
-        model.compile(loss=kl.categorical_crossentropy, metrics=['accuracy'], optimizer=opt)
-        #print("Model ID: {} compiled".format(self.mod_id))     # Verify updates
-
-        # Load weights if they're available
-        if weights:
-            model.load_weights(weights)
-            print("model loaded")
-        return model
-
-    def network(self, weights=None):
-        model = Sequential()
-        model.add(Dense(output_dim=40, activation='relu', input_dim=16))        # max 144
-        model.add(Dropout(0.15))
-        model.add(Dense(output_dim=40, activation='relu'))
-        model.add(Dropout(0.15))
-        model.add(Dense(output_dim=40, activation='relu'))
-        model.add(Dropout(0.15))
-
-        model.add(Dense(output_dim=4, activation='softmax'))
-        opt = Adam(self.learning_rate)
-        model.compile(loss='mse', metrics=['accuracy'], optimizer=opt)
-
-        if weights:
-            model.load_weights(weights)
-            print("model loaded")
-        return model
 
 
 # https://stackoverflow.com/questions/6081008/dump-a-numpy-array-into-a-csv-file
@@ -98,10 +55,11 @@ def append_data(data, file_name="state_data/data"):
 
 
 def read_data(data_file="state_data/data.csv"):
-    ''' Read the csv file data into a 2d numpy array.
-        Give back 2d array and the number of instances.
-        ndarray data
-        int num_p
+    '''
+    Read the csv file data into a 2d numpy array.
+    Give back 2d array and the number of instances.
+    :param data_file: Path to data
+    :return: ndarray data numpy array
     '''
     # Numpy read in my data - separate by comma, all ints.  
     data = np.loadtxt(data_file, delimiter=",", dtype=int)
@@ -119,23 +77,15 @@ def get_state2(game, player, enemies):
     :param enemies: All enemies list
     :return: Give back a numpy label and state
     '''
-    state = np.zeros(10, dtype=int)     # state of 16
-    '''
-    # Am I on the ground or in the air
-    if player.jumping:
-        state[0] = 1
+    state = np.zeros(10, dtype=int)     # state of 10
 
-    # Did dino crash?
-    if game.crash:
-        state[1] = 1
-    '''
     # Check all the enemies if any of these are true
     for enemy in enemies:
-        # Enemy Anywhere within 150 pixels of dino - Won't check if they aren't in range - slight speed up
-        if player.x + player.w < enemy.x < player.x + player.w + 150 \
-            or player.x > enemy.x + enemy.w > player.x - 150 \
-            or player.y > enemy.y + enemy.h and player.y - 150 < enemy.x + enemy.h \
-            or player.y + player.h < enemy.y < player.y + player.h + 150:
+        # Enemy Anywhere within 100 pixels of dino - Won't check if they aren't in range - slight speed up
+        if player.x + player.w < enemy.x < player.x + player.w + 100 \
+            or player.x > enemy.x + enemy.w > player.x - 100 \
+            or player.y > enemy.y + enemy.h and player.y - 100 < enemy.x + enemy.h \
+            or player.y + player.h < enemy.y < player.y + player.h + 100:
 
             # Directly ahead/behind - danger on my current y cords
             if player.y < enemy.hitbox[1] + enemy.hitbox[3] and player.y + player.h > enemy.hitbox[1] and state[0] == 0:
@@ -178,23 +128,5 @@ def get_state2(game, player, enemies):
             # Enemy within 100 pixels below dino
             if player.y + player.h < enemy.y < player.y + player.h + 100 and state[9] == 0:
                 state[9] = 1
-            '''
-            # The 150 pixel box range
-            # Enemy within 150 pixels behind dino
-            if player.x + player.w < enemy.x < player.x + player.w + 150 and state[10] == 0:
-                state[10] = 1
-
-            # Enemy within 150 pixels behind dino
-            if player.x > enemy.x + enemy.w > player.x - 150 and state[11] == 0:
-                state[11] = 1
-
-            # Enemy within 150 pixels above dino
-            if player.y > enemy.y + enemy.h and player.y - 150 < enemy.x + enemy.h and state[12] == 0:
-                state[12] = 1
-
-            # Enemy within 150 pixels below dino
-            if player.y + player.h < enemy.y < player.y + player.h + 150 and state[13] == 0:
-                state[13] = 1
-            '''
 
     return state
