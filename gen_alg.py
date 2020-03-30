@@ -8,7 +8,7 @@ Genetic algorithm class will manage network tuning.
 class Gen_alg:
     def __init__(self, pop_size, networks):
         self.pop_num = pop_size #12  # 500               # Population Number
-        self.remaining = int(self.pop_num * .6)#/ 2)
+        self.remaining = int(self.pop_num * .5)#/ 2)
         self.gen_num = 100  # Number of generations
         self.mutation_rate = .20  # How likely are we to mutate
         self.mut_val = .50  # How much mutation

@@ -9,18 +9,16 @@
 
 import pygame
 import random
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sb
 import user_active as UA
 import collect_states as CS
 import time
-
 import player_class as plc
 import enemy_class as enc
 import gen_alg as ga
-
 from manual_nn import *
+
 # *************************************************************************************
 # GLOBAL CONFIGS
 # *************************************************************************************
@@ -29,7 +27,7 @@ G_SCREEN_HEIGHT = 500
 
 # Global Config Variables - load into different file later
 # Viewing variable: True if I want to see the game in action
-VIEW_TRAINING = True
+VIEW_TRAINING = not True
 
 # True if I want to see dynamic graphing
 VIEW_GRAPHING = True
@@ -45,14 +43,13 @@ if HUMAN:
     POP_SIZE = 1   # Population size for human player
 else:
     FPS = 100      # Game fps - for AI, go fast!
-    POP_SIZE = 10  # Population size for AI, note: Performance slowdowns
+    POP_SIZE = 20  # Population size for AI, note: Performance slowdowns
 
-MAX_GAMES = 15
+MAX_GAMES = 50
 MAX_ENEMIES = 1
 
 # Setting up the networks as globals to keep them from getting wiped out with the main loop
-population = [CS.Dna(i, 5) for i in range(POP_SIZE)]            # All the different network architectures
-nn = [CS.Collection(population[i]) for i in range(POP_SIZE)]    # The actual networks (Dino Brains)
+nn = [CS.Collection(i) for i in range(POP_SIZE)]    # The actual networks (Dino Brains)
 personal_scores = [[] for i in range(POP_SIZE)]
 
 # Setting initial colors of dinosaurs
@@ -215,9 +212,6 @@ class game(object):
                     elif NEURAL_PLAYER:         # Use the neural network to make a prediction
                         state = CS.get_state2(self, DINO, self.Enemies)     # Making some states
                         restate = np.reshape(state, (-1, 10))               # Reshape to fit the model input
-                        '''
-                        prediction = nn[index].model.predict(restate)       # Predict with specific model
-                        '''
                         prediction = forward_propagation(restate, new_population[index])
 
                         # print(prediction)
@@ -249,13 +243,6 @@ class game(object):
 
             if VIEW_TRAINING:       # Show Dinos in action when View_training flag activated
                 draw_window(font, self, Dinos, self.Enemies, moving_bg, record, final_move, living_dinos, counter_games)
-
-        # After game crash show me how each dino scored on fitness and show stats
-        for dino in Dinos:
-            print("---------------------------------------------------\n"
-                  "Dino ID: {}\t\tFitness: {}\n\tInput: {}\t\tHidden: {}\t\tOut: {}"
-                  "".format(dino.id, dino.fitness, nn[dino.id].input_layer,
-                            nn[dino.id].hidden_layers, nn[dino.id].output_layer))
 
         # Outside all the looping, give back these variables
         return record, walk_points
@@ -368,31 +355,6 @@ def graph_display(images, population, gen_num, mut_rate):
     time.sleep(0.1)
 
 
-def trainer(networks, next_gen, best_states, best_labels):
-    '''
-    EXPERIMENTAL function to train the models for x epochs based on best of the generation's collected and labeled data.
-    Note that this function is still experimental and it causes significant performance issues at the moment.
-    :param networks: the list of neural networks Collection class
-    :param next_gen: List of indexes of those who underperformed in the generation
-    :param best_states: States collected from the best dino - 2d array
-    :param best_labels: Labels collected from the best dino - 2d array
-    :return: N/A
-    '''
-
-    print("state shape: {}\t label shape: {}".format(best_states.shape, best_labels.shape))
-
-    # Train Model - loop through each and train accordingly
-    for network in networks:
-        # Reset all their states and labels
-        network.states = []     # Full reset
-        network.labels = []     # Full reset
-
-        # Added a section to only train the models that were just initialized, not the older ones.
-        #if network.mod_id in next_gen:
-        print("--------------------\nTraining DINO {}".format(network.mod_id))
-        network.model.fit(best_states, best_labels, epochs=1, verbose=1, shuffle=True)
-
-
 if __name__ == "__main__":
     Gen_A = ga.Gen_alg(POP_SIZE, nn)        # Initialize the genetic algorithm
 
@@ -417,7 +379,7 @@ if __name__ == "__main__":
         font = pygame.font.SysFont('comicsansms', 40, True)     # Font to display on screen
 
     for i in range(len(Gen_A.population)):
-        print("Pop_Id: {}\nLayers: {}\n".format(Gen_A.population[i].mod_id, Gen_A.population[i].hidden_layers))
+        #print("Pop_Id: {}\nLayers: {}\n".format(Gen_A.population[i].mod_id, Gen_A.population[i].hidden_layers))
 
         # Initialize all the plots
         temp_img, = plt.plot(Gen_A.population[i].fit_vals, np.arange(len(Gen_A.population[i].fit_vals)))
@@ -452,9 +414,6 @@ if __name__ == "__main__":
         counter_games += 1
         print('Game', counter_games, '      Score:', Game.score, '      Record:', record,
               '      Dodge Points', Game.dodge_points, '    Walk Points', walk_points)
-
-        for i, score in enumerate(personal_scores):
-            score.append(Dinos[i].fitness)  # just in case I want to see how the dinos are doing individually
 
         game_scores.append(Game.score)
 

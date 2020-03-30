@@ -1,45 +1,16 @@
 # Creating file to collect data from players on how to dino run.
-# Train NN after human plays.
+# Can train Neural Network on collected data
 # 11/21/19
 
-from manual_nn import *
-import random
 import numpy as np
-#from operator import add
-#from keras.optimizers import Adam
-#from keras.models import Sequential
-#from keras.layers.core import Dense, Dropout
-#import keras.losses as kl
-
-'''
-Class for each individual in the population will be built off this information.
-This information will later be scrambled with crossover to create new population.
-'''
-class Dna:
-    def __init__(self, id, chrom_num):
-        self.id = id                            # The populant's id number
-        self.num_layers = chrom_num
-        self.fit_vals = [0]                     # Accuracy scores to be added
-        self.input_layer = 10                   # Same number for each input
-        self.hidden_layers = [random.randint(1, 70) for i in range(self.num_layers)]       # Set hidden layers randomly
-        self.output_layer = 4                   # Placeholder output layer
-        self.history = [id]                     # List of all combinations
-
 
 class Collection():
-    def __init__(self, dna):
+    def __init__(self, id):
         self.learning_rate = 0.001
-        self.mod_id = dna.id
-        self.input_layer = dna.input_layer
-        self.hidden_layers = dna.hidden_layers
-        self.output_layer = dna.output_layer
-        self.model = self.manual_network() #self.create_network()  # No initial weights
-        self.fit_vals = dna.fit_vals    # [0]
-        self.states = []    # 16 inputs
-        self.labels = []    # 4 outputs
-
-    def manual_network(self, weights=None):
-        pass
+        self.mod_id = id        # Model Id
+        self.fit_vals = [0]     # Fitness Values
+        self.states = []        # 10 inputs per state
+        self.labels = []        # 4 outputs per label
 
 
 # https://stackoverflow.com/questions/6081008/dump-a-numpy-array-into-a-csv-file
@@ -47,6 +18,7 @@ def write_data(data, file_name="state_data/data"):
     np.savetxt("{}.csv".format(file_name), data, delimiter=",", fmt='%i')
     print("DATA SAVED.")
     pass
+
 
 def append_data(data, file_name="state_data/data"):
     with open("{}.csv".format(file_name),'ab') as f:
