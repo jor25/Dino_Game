@@ -27,7 +27,7 @@ G_SCREEN_HEIGHT = 500
 
 # Global Config Variables - load into different file later
 # Viewing variable: True if I want to see the game in action
-VIEW_TRAINING = not True
+VIEW_TRAINING = True
 
 # True if I want to see dynamic graphing
 VIEW_GRAPHING = True
@@ -45,12 +45,11 @@ else:
     FPS = 100      # Game fps - for AI, go fast!
     POP_SIZE = 20  # Population size for AI, note: Performance slowdowns
 
-MAX_GAMES = 50
-MAX_ENEMIES = 1
+MAX_GAMES = 20
+MAX_ENEMIES = 2
 
-# Setting up the networks as globals to keep them from getting wiped out with the main loop
-nn = [CS.Collection(i) for i in range(POP_SIZE)]    # The actual networks (Dino Brains)
-personal_scores = [[] for i in range(POP_SIZE)]
+# Setting up the network history as globals to keep them from getting wiped out with the main loop
+nn = [CS.Collection(i) for i in range(POP_SIZE)]    # Information about each dino after every generation
 
 # Setting initial colors of dinosaurs
 COLOR = ["#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(POP_SIZE)]
@@ -122,7 +121,7 @@ class game(object):
 
         en_index = random.randint(0, 3) % 3         # Enemy type - bird or cactus
         rand_lmh = random.randint(0, 2)             # Randomly select low, middle, or high (category of enemy)
-        offset = id * random.randrange(self.screen_width-200, self.screen_width+200, 100)
+        offset = id * random.randrange(int(self.screen_width*.5), int(self.screen_width*.7), 100)
 
         #print("MAKE ENEMY ID: {}".format(id))
         if en_index == 0:       # About 1/3 times we get a bird
@@ -159,12 +158,25 @@ class game(object):
             if walk_points % 50 == 0:               # Get walkpoints every 50 steps
                 self.got_walk_points = True
 
+            for Enemy in self.Enemies:
+                Enemy.move()    # Do the move then let the dinos react to it
+                if not Enemy.alive and enemy_cd > dist_low:  # Enemy not alive - remake the enemy and go to next enemy
+                # print("Making New Enemy for id: {}\tCD: {}".format(Enemy.id, enemy_cd))
+                    self.Enemies[Enemy.id] = self.init_enemies(Enemy.id)  # Modify that specific enemy with new init
+
+            if enemy_cd > dist_low:  # Check to reset the enemy cooldown variable
+                enemy_cd = 0
+
+            moving_bg += self.speed  # Increment background image
+            if moving_bg > self.screen_width:  # Reset background image
+                moving_bg = 0
+
             for index, DINO in enumerate(Dinos):    # Go through all dinos
                 if DINO.alive:                      # Only do this if the current dino is alive
                     for Enemy in self.Enemies:      # Go through all enemies
                         if Enemy.alive:             # Only check if enemy is alive
                             Enemy.vel = self.speed
-                            Enemy.move()
+                            #Enemy.move()
                             #if DINO.alive and Enemy.alive:
                             if DINO.y < Enemy.y + Enemy.h:
                                 if DINO.y + DINO.h > Enemy.y:
@@ -193,12 +205,7 @@ class game(object):
                                     if self.speed % 5 == 0 and dist_low != 10:  # if it reaches a mod of 10 then drop spacing between enemies
                                         dist_low -= 10
 
-                        elif not Enemy.alive and enemy_cd > dist_low: # Enemy not alive - remake the enemy and go to next enemy
-                            #print("Making New Enemy for id: {}\tCD: {}".format(Enemy.id, enemy_cd))
-                            self.Enemies[Enemy.id] = self.init_enemies(Enemy.id)    # Modify that specific enemy with new init
 
-                    if enemy_cd > dist_low:     # Check to reset the enemy cooldown variable
-                        enemy_cd = 0
 
                     if HUMAN:       # Global human flag is activated
                         final_move = UA.active_player(DINO)
@@ -231,15 +238,9 @@ class game(object):
                     self.got_dodge_points = False
                     self.got_walk_points = False
 
-                    moving_bg += self.speed             # Increment background image
-                    if moving_bg > self.screen_width:   # Reset background image
-                        moving_bg = 0
-
                     if self.score == 1000:              # Arbitrary number to save the model at
-                        #nn[index].model.save_weights('weight_files/Dino[{}]got_1000_points.hdf5'.format(index))
                         self.crash = True       # Crash it
                         print("Weights Saved!")
-                    # print("dino.x = {}, dino.y ={}".format(DINO.x, DINO.y))
 
             if VIEW_TRAINING:       # Show Dinos in action when View_training flag activated
                 draw_window(font, self, Dinos, self.Enemies, moving_bg, record, final_move, living_dinos, counter_games)

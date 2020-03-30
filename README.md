@@ -58,3 +58,5 @@
     * https://docs.scipy.org/doc/numpy/reference/generated/numpy.trim_zeros.html
 * Numpy Neural Network Example Article:
     * https://towardsdatascience.com/lets-code-a-neural-network-in-plain-numpy-ae7e74410795
+* Numpy Random Choice:
+    * https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.random.choice.html

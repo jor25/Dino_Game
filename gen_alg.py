@@ -64,8 +64,6 @@ class Gen_alg:
         parent_1 = brains[parents[0]]   # Initialize parent 1 np array
         parent_2 = brains[parents[1]]   # Initialize parent 2 np array
 
-        #print("Before: {}".format(brains[ch_id]))
-        # Basic split
         num_crosses = int(np.random.uniform(low=1, high=int(len(parent_1)/2 - 1)))      # How many times am I swapping
         splits = np.random.choice(len(parent_1)-1, num_crosses, replace=False)      # All the places to split the list
         parts = np.trim_zeros(np.sort(splits))      # Sort and remove Zero from start
@@ -78,13 +76,11 @@ class Gen_alg:
 
             if i == 0:      # On the first index
                 brains[ch_id][0:part] = parent_x[0:part]      # Load the first chunk from parent X
-                #brains[ch_id][:split], brains[ch_id][split:] = parent_1[:split], parent_2[split:]   # Set the first & send half
             elif i == len(parts) - 1:       # On the last index
                 brains[ch_id][parts[i]:len(parent_x)] = parent_x[parts[i]:len(parent_x)]
             else:           # All our other cases
                 brains[ch_id][parts[i-1]:part] = parent_x[parts[i-1]:part]
 
-        #print("After: {}".format(brains[ch_id]))
         self.mutation2(ch_id, brains)
 
     def mutation2(self, ch_id, brains):

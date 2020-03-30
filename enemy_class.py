@@ -60,7 +60,6 @@ class enemy(object):
         if self.vel > 0: # Go left
             if self.x - self.vel > self.path[1]:    # If enemy hasn't reached path end yet
                 self.x -= self.vel                  # Continue left
-                #print("bird moving: ", self.x, ' ', self.y)
                 self.hitbox = (self.x, self.y, self.w, self.h)
             else:
                 if self.alive:
