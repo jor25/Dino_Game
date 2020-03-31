@@ -93,108 +93,100 @@ class game(object):
         :param moving_bg: moving background integer offset
         :return: record integer, walk_points integer
         '''
-        while not self.crash:
+        while not self.crash:                   # While the game has not crashed
             if VIEW_TRAINING:
-                clock.tick(FPS)         # Clock FPS if training viewable
+                clock.tick(FPS)                 # Set clock FPS if training viewable
 
-            enemy_cd += 1                       # Cooldown for enemies
-            walk_points += 1                    # Walking points
+            enemy_cd += 1                       # Increment cooldown for enemies
+            walk_points += 1                    # Increment walking points
+            moving_bg += self.speed             # Increment background image
 
-            for event in pygame.event.get():        # Get game close event
+            for event in pygame.event.get():    # Get game close event - if user closes game window
                 if event.type == pygame.QUIT:
-                    self.crash = True
+                    self.crash = True           # Crash will get us out of the game loop
 
-            if walk_points % 50 == 0:               # Get walkpoints every 50 steps
-                self.got_walk_points = True
+            if walk_points % 50 == 0:           # Get walkpoints every mod 50 steps
+                self.got_walk_points = True     # Set flag for walk points
 
-            for Enemy in self.Enemies:
-                Enemy.move()    # Do the move then let the dinos react to it
-                if not Enemy.alive and enemy_cd > dist_low:  # Enemy not alive - remake the enemy and go to next enemy
-                # print("Making New Enemy for id: {}\tCD: {}".format(Enemy.id, enemy_cd))
+            for Enemy in self.Enemies:          # For each enemy
+                Enemy.move()                    # Do the move then let the dinos react to it
+                Enemy.vel = self.speed          # Update the speed of each enemy
+                if not Enemy.alive and enemy_cd > dist_low:  # Enemy not alive and cooldown available
                     self.Enemies[Enemy.id] = self.init_enemies(Enemy.id)  # Modify that specific enemy with new init
 
-            if enemy_cd > dist_low:  # Check to reset the enemy cooldown variable
+            if enemy_cd > dist_low:             # Check to reset the enemy cooldown variable
                 enemy_cd = 0
 
-            moving_bg += self.speed  # Increment background image
-            if moving_bg > self.screen_width:  # Reset background image
+            if moving_bg > self.screen_width:   # Reset background image
                 moving_bg = 0
 
-            for index, DINO in enumerate(Dinos):    # Go through all dinos
-                if DINO.alive:                      # Only do this if the current dino is alive
-                    for Enemy in self.Enemies:      # Go through all enemies
-                        if Enemy.alive:             # Only check if enemy is alive
-                            Enemy.vel = self.speed
-                            #Enemy.move()
-                            #if DINO.alive and Enemy.alive:
-                            if DINO.y < Enemy.y + Enemy.h:
-                                if DINO.y + DINO.h > Enemy.y:
+            for index, DINO in enumerate(Dinos):                            # Go through all dinos
+                if DINO.alive:                                              # Only do this if the current dino is alive
+                    for Enemy in self.Enemies:                              # Go through all enemies
+                        if Enemy.alive:                                     # Only check if enemy is alive
+
+                            if DINO.y < Enemy.y + Enemy.h:                  # Check dino y coords with enemy y coords
+                                if DINO.y + DINO.h > Enemy.y:               # Are we on a collision path?
                                     # Within hitbox x coords
-                                    if DINO.x + DINO.w > Enemy.x:
-                                        if DINO.x < Enemy.x + Enemy.w:
-                                            DINO.take_dmg()                 # When dino collides with bird
+                                    if DINO.x + DINO.w > Enemy.x:           # Check dino x coords with enemy
+                                        if DINO.x < Enemy.x + Enemy.w:      # Is the enemy above or below me?
+                                            DINO.take_dmg()                 # When dino collides with enemy - die
 
                                             if not DINO.alive:              # When dino out of lives
-                                                living_dinos -= 1
-                                                # print("DINO {} - DEAD".format(DINO.id))
+                                                living_dinos -= 1           # Deduct from number of living dinos
                                                 if living_dinos <= 0:       # All dinos dead - reset game
-                                                    self.crash = True       # Died - game over - shut down
-                                                    # print("Game CRASHED!!")
+                                                    self.crash = True       # All died - game over - shut down
 
                             if Enemy.x + Enemy.w < DINO.x and not Enemy.got_jumped:     # Successfully dodged enemy
-                                # Set off the flags
+                                # Set off the flags to avoid double counting points
                                 Enemy.got_jumped = True
                                 self.got_dodge_points = True
                                 self.got_points = True
-                                self.score += 10                                        # Score increment by 10
-                                self.dodge_points += 1                                  # Dodge Points increment 1
+                                self.score += 10                                # Score increment by 10
+                                self.dodge_points += 1                          # Dodge Points increment 1
 
-                                if self.score % 100 == 0:                       # If score mod 100 is 0, increment speed
-                                    self.speed += 1
-                                    if self.speed % 5 == 0 and dist_low != 10:  # if it reaches a mod of 10 then drop spacing between enemies
-                                        dist_low -= 10
+                                if self.score % 100 == 0:                       # If score mod 100 is 0
+                                    self.speed += 1                             # Increment speed
+                                    if self.speed % 5 == 0 and dist_low >= 10:  # If mod of 5 and dist low not 10
+                                        dist_low -= 10                          # Decriment distance low
 
-
-
-                    if HUMAN:       # Global human flag is activated
-                        final_move = UA.active_player(DINO)
-                        DINO.do_move(final_move, self)  # Perform new move and get new state
+                    if HUMAN:
+                        final_move = UA.active_player(DINO)     # Get keyboard press
+                        DINO.do_move(final_move, self)          # Perform new move and get new state
 
                         if not np.array_equal(final_move, [1, 0, 0, 0]) or walk_points % 100 == 0:
-                            state = CS.get_state2(DINO, self.Enemies)  # Making some states
-                            label_list.append(np.asarray(final_move, dtype=int))
-                            states_list.append(state)
+                            state = CS.get_state2(DINO, self.Enemies)               # Making some states
+                            label_list.append(np.asarray(final_move, dtype=int))    # Append those labels
+                            states_list.append(state)                               # Append those states
 
-                    elif NEURAL_PLAYER:         # Use the neural network to make a prediction
-                        state = CS.get_state2(DINO, self.Enemies)     # Making some states
-                        restate = np.reshape(state, (-1, 10))               # Reshape to fit the model input
-                        prediction = forward_propagation(restate, DINO_BRAINS[index])
-
-                        # print(prediction)
+                    elif NEURAL_PLAYER:                             # Use the neural networks to make a prediction
+                        state = CS.get_state2(DINO, self.Enemies)   # Making some states
+                        restate = np.reshape(state, (-1, 10))       # Reshape to fit the model input
+                        prediction = forward_propagation(restate, DINO_BRAINS[index])   # Make predictions
                         final_move = [0, 0, 0, 0]                   # Initialize empty move
                         final_move[np.argmax(prediction[0])] = 1    # Set model's top prediction = 1
                         # Use the below for Debugging
                         ##print("Dino: {}\t\tFinal_move: {}\t\tState: {}".format(DINO.id, final_move, state))
-                        DINO.do_move(final_move, self)  # Do new move and get new state
+                        DINO.do_move(final_move, self)              # Do the move
 
                         #if walk_points % 5 == 0:    # Collect states every 5 walkpoints
                         if not np.array_equal(state, np.zeros(10, dtype=int)):              # Collect if content in state
                             HISTORIES[DINO.id].labels.append(np.asarray(final_move, dtype=int))    # Collect labels while alive
                             HISTORIES[DINO.id].states.append(state)                                # Collect states while alive
 
-                    record = get_record(self.score, record)
-                    self.got_points = False             # Reset point indicator flags
+                    record = get_record(self.score, record)     # Get the game record
+                    self.got_points = False                     # Reset point indicator flags
                     self.got_dodge_points = False
                     self.got_walk_points = False
 
                     if self.score == 1000:              # Arbitrary number to save the model at
-                        self.crash = True       # Crash it
+                        self.crash = True               # Crash it if we reach here - Save the weights too...
                         print("Weights Saved!")
 
             if VIEW_TRAINING:       # Show Dinos in action when View_training flag activated
                 draw_window(font, self, Dinos, self.Enemies, moving_bg, record, final_move, living_dinos, counter_games)
 
-        # Outside all the looping, give back these variables
+        # Outside all the looping, give back the record and the walk points
         return record, walk_points
 
 

@@ -9,8 +9,8 @@ import numpy as np
 
 # Global Weight configurations - ie MODEL ARCHITECTURE!
 NUM_INPUTS = 10                         # Number of inputs
-NUM_HID_1 = 20                          # Number of nodes in hidden layer 1
-NUM_HID_2 = 20                          # Number of nodes in hidden layer 2
+NUM_HID_1 = 10                          # Number of nodes in hidden layer 1
+NUM_HID_2 = 10                          # Number of nodes in hidden layer 2
 NUM_OUT = 4                             # Number of outputs
 W1_SHAPE = (NUM_HID_1, NUM_INPUTS)      # Weight Matrix 1 = (20,10)
 W2_SHAPE = (NUM_HID_2, NUM_HID_1)       # Weight Matrix 2 = (20,20)
@@ -34,7 +34,7 @@ MAX_GAMES = 20                          # Number of games to play
 MAX_ENEMIES = 2                         # Number of enemies, this is actually a lot. You'll see.
 
 if HUMAN:
-    FPS = 70                            # This will hurt your eyes less
+    FPS = 80                            # This will hurt your eyes less
     POP_SIZE = 1                        # Population size for human player
 else:
     FPS = 100                           # Game fps - for AI, go fast!
