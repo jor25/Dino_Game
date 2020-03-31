@@ -7,64 +7,15 @@
 # Resources:
 # Random Color generation: https://stackoverflow.com/questions/28999287/generate-random-colors-rgb
 
-import pygame
-import random
 import matplotlib.pyplot as plt
 import seaborn as sb
 import user_active as UA
-import collect_states as CS
 import time
 import player_class as plc
 import enemy_class as enc
 import gen_alg as ga
 from manual_nn import *
-
-# *************************************************************************************
-# GLOBAL CONFIGS
-# *************************************************************************************
-G_SCREEN_WIDTH = 800
-G_SCREEN_HEIGHT = 500
-
-# Global Config Variables - load into different file later
-# Viewing variable: True if I want to see the game in action
-VIEW_TRAINING = not True
-
-# True if I want to see dynamic graphing
-VIEW_GRAPHING = True
-
-# Activate Human Player:
-HUMAN = False
-
-# Test Neural Net:
-NEURAL_PLAYER = not HUMAN
-
-if HUMAN:
-    FPS = 70       # This will hurt your eyes less
-    POP_SIZE = 1   # Population size for human player
-else:
-    FPS = 100      # Game fps - for AI, go fast!
-    POP_SIZE = 20  # Population size for AI, note: Performance slowdowns
-
-MAX_GAMES = 20
-MAX_ENEMIES = 2
-
-# Setting up the network history as globals to keep them from getting wiped out with the main loop
-HISTORIES = [CS.Collection(i) for i in range(POP_SIZE)]    # Information about each dino after every generation
-
-# Setting initial colors of dinosaurs
-COLOR = ["#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(POP_SIZE)]
-
-if VIEW_TRAINING:
-    clock = pygame.time.Clock()
-
-# The total number of weights from each layer
-NUM_WEIGHTS = NUM_INPUTS*NUM_HID_1 + NUM_HID_1*NUM_HID_2 + NUM_HID_2*NUM_OUT
-
-# Dimensions of the population, pop size and number of weights in each
-POP_DIMS = (POP_SIZE, NUM_WEIGHTS)
-
-# Initialize all the weight values randomly. They will be between -1 and 1
-DINO_BRAINS = np.random.choice(np.arange(-1,1,step=0.01),size=POP_DIMS,replace=True)
+from configs import *
 
 
 class game(object):
@@ -102,7 +53,7 @@ class game(object):
         # Set cactus sprite object specifications
         self.cactus_sprite = [pygame.image.load('images/cactus_1.png').convert_alpha()]
         self.cact_w = [25, 35, 40]      # Cactus widths
-        self.cact_h = [50, 70, 80]     # Cactus heights
+        self.cact_h = [50, 70, 80]      # Cactus heights
         self.cact_y = [420, 400, 390]   # Cactus initial y coordinates
 
         self.Enemies = [self.init_enemies(i) for i in range(max_enemies)]       # Summon list of enemies

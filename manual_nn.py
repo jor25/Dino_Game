@@ -3,16 +3,8 @@
 # Resources
 # Manual implementation of Neural network:
 # https://github.com/TheAILearner/Training-Snake-Game-With-Genetic-Algorithm
-import numpy as np
 
-# Global Weight configurations
-NUM_INPUTS = 10                         # Number of inputs
-NUM_HID_1 = 20                          # Number of nodes in hidden layer 1
-NUM_HID_2 = 20                          # Number of nodes in hidden layer 2
-NUM_OUT = 4                             # Number of outputs
-W1_SHAPE = (NUM_HID_1, NUM_INPUTS)      # Weight Matrix 1 = (20,10)
-W2_SHAPE = (NUM_HID_2, NUM_HID_1)       # Weight Matrix 2 = (20,20)
-W3_SHAPE = (NUM_OUT, NUM_HID_2)         # Weight Matrix 3 = (4,20)
+from configs import *
 
 
 def get_network_arch(individual):
