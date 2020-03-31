@@ -93,6 +93,9 @@ class game(object):
         :param moving_bg: moving background integer offset
         :return: record integer, walk_points integer
         '''
+
+        global CUT_OFF_POINTS                   # Update and call up the global cut off points
+
         while not self.crash:                   # While the game has not crashed
             if VIEW_TRAINING:
                 clock.tick(FPS)                 # Set clock FPS if training viewable
@@ -179,9 +182,10 @@ class game(object):
                     self.got_dodge_points = False
                     self.got_walk_points = False
 
-                    if self.score == 1000:              # Arbitrary number to save the model at
+                    if self.score == CUT_OFF_POINTS:    # Arbitrary number to save the model at
+                        CUT_OFF_POINTS += 500
                         self.crash = True               # Crash it if we reach here - Save the weights too...
-                        print("Weights Saved!")
+                        print("Game Crashed Limit reached - new limit: {}".format(CUT_OFF_POINTS))
 
             if VIEW_TRAINING:       # Show Dinos in action when View_training flag activated
                 draw_window(font, self, Dinos, self.Enemies, moving_bg, record, final_move, living_dinos, counter_games)
@@ -301,6 +305,12 @@ if __name__ == "__main__":
     # Initialize the genetic algorithm
     Gen_A = ga.Gen_alg(POP_SIZE, HISTORIES)
 
+    # Loading a specific dino brain from previous runs
+    if USE_PREV_GEN:
+        DINO_BRAINS[0] = load_saved_weight_csv("Dino[13]_Gen[21]_record[940]")
+        DINO_BRAINS[1] = load_saved_weight_csv("Dino[10]_Gen[13]_record[1000]")
+        DINO_BRAINS[2] = load_saved_weight_csv("Dino[3]_Gen[7]_record[760]")
+
     # Initialize a few game variables
     counter_games = 0       # Keep track of what game we're on
     game_scores = [0]       # Used for plotting later on
@@ -370,8 +380,9 @@ if __name__ == "__main__":
             graph_display(images, HISTORIES, counter_games, Gen_A.mutation_rate)
 
     # Save the weights to file
-    save_weights_as_csv(BEST_BRAIN, details)
-    load_saved_weight_csv(details)
+    if SAVE_WEIGHTS:
+        save_weights_as_csv(BEST_BRAIN, details)
+        #load_saved_weight_csv(details)
 
     # Arrange a list of games for plotting - Display plot from records
     game_num = np.arange(counter_games+1)
