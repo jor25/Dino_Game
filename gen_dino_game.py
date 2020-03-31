@@ -359,11 +359,20 @@ if __name__ == "__main__":
         next_gen_updates, top_dino_id = Gen_A.check_fitness(Dinos, DINO_BRAINS)
         print("UPDATE THESE ID's: {}".format(next_gen_updates))
 
+        if game_scores[np.argmax(game_scores)] == Game.score:           # Highest score?
+            BEST_BRAIN = DINO_BRAINS[top_dino_id].copy()                # Get a copy of the best dino brain
+            details = "Dino[{}]_Gen[{}]_record[{}]".format(top_dino_id, counter_games+1, Game.score)
+            print("The Best Brain: {}\nID: {}\nGame Num: {}".format(BEST_BRAIN, top_dino_id, counter_games+1))
+            print(details)
+
         if VIEW_GRAPHING:
             # Display the dynamically updating graph after each generation
             graph_display(images, HISTORIES, counter_games, Gen_A.mutation_rate)
 
+    # Save the weights to file
+    save_weights_as_csv(BEST_BRAIN, details)
+    load_saved_weight_csv(details)
+
     # Arrange a list of games for plotting - Display plot from records
     game_num = np.arange(counter_games+1)
     plot_game_records(game_num, game_scores)
-

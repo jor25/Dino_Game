@@ -54,3 +54,6 @@ POP_DIMS = (POP_SIZE, NUM_WEIGHTS)
 
 # Initialize all the weight values randomly. They will be between -1 and 1
 DINO_BRAINS = np.random.choice(np.arange(-1, 1, step=0.01), size=POP_DIMS, replace=True)
+
+# Save the best of the population and make a copy
+BEST_BRAIN = None
