@@ -51,12 +51,11 @@ def read_data(data_file="state_data/data.csv"):
     return data
 
 
-def get_state2(game, player, enemies):
+def get_state2(player, enemies):
     '''
     Function that collects all the states of the game from the dinosaur's perspective.
     This one specifically looks at all enemies available within a certain distance.
     Fairly hardcoded encoding of data.
-    :param game: Game object
     :param player: 1 Dino object
     :param enemies: All enemies list
     :return: Give back a numpy label and state

@@ -35,9 +35,9 @@ class game(object):
         self.bg_len = self.bg.get_size()[0]                                         # Background image width
         self.crash = False                                                          # Collision
         self.players = [plc.player(200, 425, 45, 52, i, COLOR[i]) for i in range(num_players)]    # Summon player class
-        self.population = num_players                                               # Number of players
-        self.score = 0                                                              # Game score
-        self.speed = 10                                                             # Game speed that will increment
+        self.population = num_players       # Number of players
+        self.score = 0                      # Game score
+        self.speed = 10                     # Game speed that will increment
         self.got_points = False             # Flag for points
         self.dodge_points = 0               # Actual dodge_points
         self.got_dodge_points = False       # Flag for dodge_points
@@ -58,11 +58,10 @@ class game(object):
 
         self.Enemies = [self.init_enemies(i) for i in range(max_enemies)]       # Summon list of enemies
         self.max_enemies = max_enemies                                          # Max Enemies
-        #self.temp_enemies = np.asarray(self.Enemies)    # testing this out for potential performance speed up
 
     def init_enemies(self, id):
         '''
-        Game function that randomly initializes a new enemy. Cactus or Bird.
+        Game function that randomly initializes a new enemy. Cactus or Bird. Birds have a 1/3 chance of being made.
         :param id: takes in the enemy id so it knows which one to replace
         :return: New enemy class object initialized as a bird or cactus
         '''
@@ -71,21 +70,23 @@ class game(object):
         rand_lmh = random.randint(0, 2)             # Randomly select low, middle, or high (category of enemy)
         offset = id * random.randrange(int(self.screen_width*.5), int(self.screen_width*.7), 100)
 
-        #print("MAKE ENEMY ID: {}".format(id))
         if en_index == 0:       # About 1/3 times we get a bird
-            return enc.enemy(self.screen_width + offset, self.bird_y[rand_lmh], self.bird_w[rand_lmh], self.bird_h[rand_lmh],
+            # Initalize and return a bird for the given id
+            return enc.enemy(self.screen_width + offset, self.bird_y[rand_lmh],
+                             self.bird_w[rand_lmh], self.bird_h[rand_lmh],
                              -42, self.bird_sprite, rand_lmh, "bird", id)
         else:
-            return enc.enemy(self.screen_width + offset, self.cact_y[rand_lmh], self.cact_w[rand_lmh], self.cact_h[rand_lmh],
+            # Initialize and return a cactus for the given id
+            return enc.enemy(self.screen_width + offset, self.cact_y[rand_lmh],
+                             self.cact_w[rand_lmh], self.cact_h[rand_lmh],
                              -42, self.cactus_sprite, rand_lmh, "cact", id)
 
 
-    def main_game(self, enemy_cd, dist_low, dist_high, living_dinos, walk_points, record, moving_bg):
+    def main_game(self, enemy_cd, dist_low, living_dinos, walk_points, record, moving_bg):
         '''
         Function that loops through and plays the game. Found in main. Runs 1 game at a time.
         :param enemy_cd: enemy cooldown integer
         :param dist_low: min distance between enemies integer
-        :param dist_high: max distance between enemies integer
         :param living_dinos: number of remaining dinosaurs still alive integer
         :param walk_points: points collected by distance walking integer
         :param record: maximum visible points collected through games
@@ -160,12 +161,12 @@ class game(object):
                         DINO.do_move(final_move, self)  # Perform new move and get new state
 
                         if not np.array_equal(final_move, [1, 0, 0, 0]) or walk_points % 100 == 0:
-                            state = CS.get_state2(self, DINO, self.Enemies)  # Making some states
+                            state = CS.get_state2(DINO, self.Enemies)  # Making some states
                             label_list.append(np.asarray(final_move, dtype=int))
                             states_list.append(state)
 
                     elif NEURAL_PLAYER:         # Use the neural network to make a prediction
-                        state = CS.get_state2(self, DINO, self.Enemies)     # Making some states
+                        state = CS.get_state2(DINO, self.Enemies)     # Making some states
                         restate = np.reshape(state, (-1, 10))               # Reshape to fit the model input
                         prediction = forward_propagation(restate, DINO_BRAINS[index])
 
@@ -252,7 +253,7 @@ def get_record(score, record):
         return record
 
 
-def plot_ai_results(array_counter, array_score):
+def plot_game_records(array_counter, array_score):
     '''
     Function that plots all the max scores of the game at the end.
     May make this into a subplot.
@@ -305,52 +306,48 @@ def graph_display(images, population, gen_num, mut_rate):
 
 
 if __name__ == "__main__":
-    Gen_A = ga.Gen_alg(POP_SIZE, HISTORIES)        # Initialize the genetic algorithm
+    # Initialize the genetic algorithm
+    Gen_A = ga.Gen_alg(POP_SIZE, HISTORIES)
 
     # Initialize a few game variables
     counter_games = 0       # Keep track of what game we're on
-    game_scores = [0]        # Used for plotting later on
+    game_scores = [0]       # Used for plotting later on
     record = 0              # Keep track of the high scores
     temp_states = None      # EXPERIMENTAL list of states
     temp_labels = None      # EXPERIMENTAL list of labels
-    images = []             # List of matplotlib elements
 
     if HUMAN:
         states_list = []
         label_list = []
 
     if VIEW_GRAPHING:
-        # Initialize Matplotlib figure, the game variable, and font
-        fig = plt.figure()
-
-    if VIEW_TRAINING:
-        pygame.init()   # Initialize pygame
-        font = pygame.font.SysFont('comicsansms', 40, True)     # Font to display on screen
-
-    for i in range(len(Gen_A.population)):
-        #print("Pop_Id: {}\nLayers: {}\n".format(Gen_A.population[i].mod_id, Gen_A.population[i].hidden_layers))
+        fig = plt.figure()      # Initialize Matplotlib figure
+        images = []             # List of matplotlib elements
 
         # Initialize all the plots
-        temp_img, = plt.plot(Gen_A.population[i].fit_vals, np.arange(len(Gen_A.population[i].fit_vals)))
-        images.append(temp_img)
+        for i in range(len(Gen_A.population)):
+            temp_img, = plt.plot(Gen_A.population[i].fit_vals, np.arange(len(Gen_A.population[i].fit_vals)))
+            images.append(temp_img)
 
+    if VIEW_TRAINING:
+        pygame.init()                                           # Initialize pygame
+        font = pygame.font.SysFont('comicsansms', 40, True)     # Font to display on screen
 
     # The multi-game loop, keeps playing the game until MAX_GAMES is reached
     while counter_games < MAX_GAMES:
         living_dinos = POP_SIZE         # Number of dinos on field - Also resets for each game
-        Game = game(G_SCREEN_WIDTH, G_SCREEN_HEIGHT, MAX_ENEMIES, living_dinos)
+        Game = game(G_SCREEN_WIDTH, G_SCREEN_HEIGHT, MAX_ENEMIES, living_dinos)     # Initialize game object
         Dinos = Game.players
 
         moving_bg = 0       # Where to start the background image offset
         enemy_cd = 0        # Limit the amount of enemies at any given time
-        dist_high = 250     # Max distance between enemy spawns #150
         dist_low = 80       # Min distance between enemy spawns #100
         walk_points = 0     # How far dino has walked - most likely will be used with GA
 
         # The main game loop
-        record, walk_points = Game.main_game(enemy_cd, dist_low, dist_high, living_dinos, walk_points, record, moving_bg)
-        #print("After {}".format(DINO_BRAINS[0]))
-        if HUMAN:  # Save run to file and quit before new run if human.
+        record, walk_points = Game.main_game(enemy_cd, dist_low, living_dinos, walk_points, record, moving_bg)
+
+        if HUMAN:  # Used to save run to file and quit before new run if human.
             # New data
             #CS.write_data(states_list)
             #CS.write_data(label_list, "state_data/label")
@@ -360,21 +357,21 @@ if __name__ == "__main__":
             #CS.append_data(label_list, "state_data/label")
             print("QUIT NOOOWWW!!")
 
+        # Increment Game counter, add scores, and display information
         counter_games += 1
+        game_scores.append(Game.score)
         print('Game', counter_games, '      Score:', Game.score, '      Record:', record,
               '      Dodge Points', Game.dodge_points, '    Walk Points', walk_points)
-
-        game_scores.append(Game.score)
 
         # Activate GA! Get a list of indexes to update and the best dino
         next_gen_updates, top_dino_id = Gen_A.check_fitness(Dinos, DINO_BRAINS)
         print("UPDATE THESE ID's: {}".format(next_gen_updates))
 
-
         if VIEW_GRAPHING:
             # Display the dynamically updating graph after each generation
             graph_display(images, HISTORIES, counter_games, Gen_A.mutation_rate)
 
+    # Arrange a list of games for plotting - Display plot from records
     game_num = np.arange(counter_games+1)
-    plot_ai_results(game_num, game_scores)
+    plot_game_records(game_num, game_scores)
 
