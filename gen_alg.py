@@ -88,17 +88,17 @@ class Gen_alg:
         parts = np.trim_zeros(np.sort(splits))                                      # Sort and remove Zero from start
 
         for i, part in enumerate(parts):
-            if np.random.choice([1,2]):     # Select a random parent
+            if np.random.choice([1, 2]):     # Select a random parent as parent x
                 parent_x = parent_1
             else:
                 parent_x = parent_2
 
-            if i == 0:      # On the first index
-                brains[ch_id][0:part] = parent_x[0:part]      # Load the first chunk from parent X
-            elif i == len(parts) - 1:       # On the last index
-                brains[ch_id][parts[i]:len(parent_x)] = parent_x[parts[i]:len(parent_x)]
-            else:           # All our other cases
-                brains[ch_id][parts[i-1]:part] = parent_x[parts[i-1]:part]
+            if i == 0:                                          # On the first index
+                brains[ch_id][0:part] = parent_x[0:part]        # Load the first chunk from parent X
+            elif i == len(parts) - 1:                           # On the last index
+                brains[ch_id][parts[i]:len(parent_x)] = parent_x[parts[i]:len(parent_x)]    # Load current to end
+            else:                                               # All our other cases
+                brains[ch_id][parts[i-1]:part] = parent_x[parts[i-1]:part]  # Load last point to latest point
 
         self.mutation(ch_id, brains)
 
@@ -111,7 +111,7 @@ class Gen_alg:
         :return: N/A
         '''
 
-        # All of the potental indexes to mutate at
+        # All of the potential indexes to mutate at
         mutation_indexes = np.random.choice(len(brains[ch_id]) - 1, self.potential_mutations, replace=False)
 
         for i in mutation_indexes:

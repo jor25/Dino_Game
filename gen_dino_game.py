@@ -169,8 +169,6 @@ class game(object):
                         prediction = forward_propagation(restate, DINO_BRAINS[index])   # Make predictions
                         final_move = [0, 0, 0, 0]                   # Initialize empty move
                         final_move[np.argmax(prediction[0])] = 1    # Set model's top prediction = 1
-                        # Use the below for Debugging
-                        ##print("Dino: {}\t\tFinal_move: {}\t\tState: {}".format(DINO.id, final_move, state))
                         DINO.do_move(final_move, self)              # Do the move
 
                         #if walk_points % 5 == 0:    # Collect states every 5 walkpoints
@@ -310,14 +308,6 @@ if __name__ == "__main__":
     # Loading a specific dino brain from previous runs
     if USE_PREV_GEN:
         load_all_networks()
-        '''
-        DINO_BRAINS[0] = load_saved_weight_csv("Dino[13]_Gen[21]_record[940].csv")      # Heads towards the front *
-        DINO_BRAINS[1] = load_saved_weight_csv("Dino[10]_Gen[13]_record[1000].csv")     # Heads towards the front *
-        DINO_BRAINS[2] = load_saved_weight_csv("Dino[16]_Gen[18]_record[1410].csv")     # Stays in the middle *
-        DINO_BRAINS[3] = load_saved_weight_csv("Dino[13]_Gen[14]_record[1270].csv")     # *
-        DINO_BRAINS[4] = load_saved_weight_csv("Dino[43]_Gen[19]_record[1170].csv")     # Stays towards back *
-        DINO_BRAINS[5] = load_saved_weight_csv("Dino[49]_Gen[19]_record[1000].csv")     # Stays towards the back
-        '''
 
     # Initialize a few game variables
     counter_games = 0       # Keep track of what game we're on

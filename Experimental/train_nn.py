@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 if __name__ == "__main__":
     nn = cs.Collection()
     data = cs.read_data()       # Get the data
-    labels = cs.read_data("state_data/label.csv")     # Get the labels
+    labels = cs.read_data("../state_data/label.csv")     # Get the labels
 
     X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.3, stratify=labels)
     print("\n\nData was split\n\n")
