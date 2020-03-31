@@ -59,7 +59,7 @@ DINO_BRAINS = np.random.choice(np.arange(-1, 1, step=0.01), size=POP_DIMS, repla
 BEST_BRAIN = None
 
 # Use a previous generation's dino
-USE_PREV_GEN = True
+USE_PREV_GEN = not True
 
 # Variable to save weights
 SAVE_WEIGHTS = False

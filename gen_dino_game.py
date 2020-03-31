@@ -182,7 +182,7 @@ class game(object):
                     self.got_dodge_points = False
                     self.got_walk_points = False
 
-                    if self.score == CUT_OFF_POINTS:    # Arbitrary number to save the model at
+                    if self.score == CUT_OFF_POINTS:    # Arbitrary number to save the model at 1000
                         CUT_OFF_POINTS += 500
                         self.crash = True               # Crash it if we reach here - Save the weights too...
                         print("Game Crashed Limit reached - new limit: {}".format(CUT_OFF_POINTS))
@@ -310,6 +310,7 @@ if __name__ == "__main__":
         DINO_BRAINS[0] = load_saved_weight_csv("Dino[13]_Gen[21]_record[940]")
         DINO_BRAINS[1] = load_saved_weight_csv("Dino[10]_Gen[13]_record[1000]")
         DINO_BRAINS[2] = load_saved_weight_csv("Dino[3]_Gen[7]_record[760]")
+        DINO_BRAINS[3] = load_saved_weight_csv("Dino[13]_Gen[14]_record[1270]")
 
     # Initialize a few game variables
     counter_games = 0       # Keep track of what game we're on
