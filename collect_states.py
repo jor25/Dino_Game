@@ -1,6 +1,8 @@
 # Creating file to collect data from players on how to dino run.
 # Can train Neural Network on collected data
 # 11/21/19
+# Resources:
+#   https://stackoverflow.com/questions/6081008/dump-a-numpy-array-into-a-csv-file
 
 import numpy as np
 
@@ -13,14 +15,24 @@ class Collection():
         self.labels = []        # 4 outputs per label
 
 
-# https://stackoverflow.com/questions/6081008/dump-a-numpy-array-into-a-csv-file
 def write_data(data, file_name="state_data/data"):
+    '''
+    Function to write state or label data into a csv file
+    :param data: 2d numpy array of states or labels
+    :param file_name: Path and name of the file to save this data to
+    :return: N/A
+    '''
     np.savetxt("{}.csv".format(file_name), data, delimiter=",", fmt='%i')
     print("DATA SAVED.")
-    pass
 
 
 def append_data(data, file_name="state_data/data"):
+    '''
+    Function that appends state or label data into a previously existing csv file.
+    :param data: 2d numpy array of states or labels
+    :param file_name: Path and name of the file to save this data to
+    :return: N/A
+    '''
     with open("{}.csv".format(file_name),'ab') as f:
         np.savetxt(f, data, delimiter=",", fmt='%i')
     print("DATA APPENDED.")
@@ -30,7 +42,7 @@ def read_data(data_file="state_data/data.csv"):
     '''
     Read the csv file data into a 2d numpy array.
     Give back 2d array and the number of instances.
-    :param data_file: Path to data
+    :param data_file: Path to state data or label data csv's
     :return: ndarray data numpy array
     '''
     # Numpy read in my data - separate by comma, all ints.  

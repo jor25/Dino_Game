@@ -27,7 +27,7 @@ G_SCREEN_HEIGHT = 500
 
 # Global Config Variables - load into different file later
 # Viewing variable: True if I want to see the game in action
-VIEW_TRAINING = True
+VIEW_TRAINING = not True
 
 # True if I want to see dynamic graphing
 VIEW_GRAPHING = True
@@ -49,7 +49,7 @@ MAX_GAMES = 20
 MAX_ENEMIES = 2
 
 # Setting up the network history as globals to keep them from getting wiped out with the main loop
-nn = [CS.Collection(i) for i in range(POP_SIZE)]    # Information about each dino after every generation
+HISTORIES = [CS.Collection(i) for i in range(POP_SIZE)]    # Information about each dino after every generation
 
 # Setting initial colors of dinosaurs
 COLOR = ["#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(POP_SIZE)]
@@ -57,16 +57,14 @@ COLOR = ["#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)]) fo
 if VIEW_TRAINING:
     clock = pygame.time.Clock()
 
+# The total number of weights from each layer
+NUM_WEIGHTS = NUM_INPUTS*NUM_HID_1 + NUM_HID_1*NUM_HID_2 + NUM_HID_2*NUM_OUT
 
-# The population will have sol_per_pop chromosome where each chromosome has num_weights genes.
-sol_per_pop = POP_SIZE
-num_weights = n_x*n_h + n_h*n_h2 + n_h2*n_y
+# Dimensions of the population, pop size and number of weights in each
+POP_DIMS = (POP_SIZE, NUM_WEIGHTS)
 
-# Defining the population size.
-pop_size = (sol_per_pop, num_weights)        # 50, 321
-
-#Creating the initial population. of however many weights - they will be between -1 and 1
-new_population = np.random.choice(np.arange(-1,1,step=0.01),size=pop_size,replace=True)
+# Initialize all the weight values randomly. They will be between -1 and 1
+DINO_BRAINS = np.random.choice(np.arange(-1,1,step=0.01),size=POP_DIMS,replace=True)
 
 
 class game(object):
@@ -110,7 +108,6 @@ class game(object):
         self.Enemies = [self.init_enemies(i) for i in range(max_enemies)]       # Summon list of enemies
         self.max_enemies = max_enemies                                          # Max Enemies
         #self.temp_enemies = np.asarray(self.Enemies)    # testing this out for potential performance speed up
-
 
     def init_enemies(self, id):
         '''
@@ -219,7 +216,7 @@ class game(object):
                     elif NEURAL_PLAYER:         # Use the neural network to make a prediction
                         state = CS.get_state2(self, DINO, self.Enemies)     # Making some states
                         restate = np.reshape(state, (-1, 10))               # Reshape to fit the model input
-                        prediction = forward_propagation(restate, new_population[index])
+                        prediction = forward_propagation(restate, DINO_BRAINS[index])
 
                         # print(prediction)
                         final_move = [0, 0, 0, 0]                   # Initialize empty move
@@ -230,8 +227,8 @@ class game(object):
 
                         #if walk_points % 5 == 0:    # Collect states every 5 walkpoints
                         if not np.array_equal(state, np.zeros(10, dtype=int)):              # Collect if content in state
-                            nn[DINO.id].labels.append(np.asarray(final_move, dtype=int))    # Collect labels while alive
-                            nn[DINO.id].states.append(state)                                # Collect states while alive
+                            HISTORIES[DINO.id].labels.append(np.asarray(final_move, dtype=int))    # Collect labels while alive
+                            HISTORIES[DINO.id].states.append(state)                                # Collect states while alive
 
                     record = get_record(self.score, record)
                     self.got_points = False             # Reset point indicator flags
@@ -357,7 +354,7 @@ def graph_display(images, population, gen_num, mut_rate):
 
 
 if __name__ == "__main__":
-    Gen_A = ga.Gen_alg(POP_SIZE, nn)        # Initialize the genetic algorithm
+    Gen_A = ga.Gen_alg(POP_SIZE, HISTORIES)        # Initialize the genetic algorithm
 
     # Initialize a few game variables
     counter_games = 0       # Keep track of what game we're on
@@ -401,7 +398,7 @@ if __name__ == "__main__":
 
         # The main game loop
         record, walk_points = Game.main_game(enemy_cd, dist_low, dist_high, living_dinos, walk_points, record, moving_bg)
-        #print("After {}".format(new_population[0]))
+        #print("After {}".format(DINO_BRAINS[0]))
         if HUMAN:  # Save run to file and quit before new run if human.
             # New data
             #CS.write_data(states_list)
@@ -419,13 +416,13 @@ if __name__ == "__main__":
         game_scores.append(Game.score)
 
         # Activate GA! Get a list of indexes to update and the best dino
-        next_gen_updates, top_dino_id = Gen_A.check_fitness(Dinos, new_population)
+        next_gen_updates, top_dino_id = Gen_A.check_fitness(Dinos, DINO_BRAINS)
         print("UPDATE THESE ID's: {}".format(next_gen_updates))
 
 
         if VIEW_GRAPHING:
             # Display the dynamically updating graph after each generation
-            graph_display(images, nn, counter_games, Gen_A.mutation_rate)
+            graph_display(images, HISTORIES, counter_games, Gen_A.mutation_rate)
 
     game_num = np.arange(counter_games+1)
     plot_ai_results(game_num, game_scores)
