@@ -5,7 +5,8 @@
 # https://github.com/TheAILearner/Training-Snake-Game-With-Genetic-Algorithm
 
 from configs import *
-
+from os import listdir
+from os.path import isfile, join
 
 def get_network_arch(individual):
     '''
@@ -26,6 +27,7 @@ def get_network_arch(individual):
 
 
 def softmax(z):
+    # Softmax activation layer
     s = np.exp(z.T) / np.sum(np.exp(z.T), axis=1).reshape(-1, 1)
     return s
 
@@ -69,12 +71,38 @@ def forward_propagation(State, ind_weight):
 
 
 def save_weights_as_csv(weights, file_name, file_path="weight_files/numpy_weight_files"):
+    '''
+    Save the weights of any given model from the dino brains to a csv file.
+    :param weights: Dino brain weights
+    :param file_name: Description of dino weights
+    :param file_path: Path to saving directory
+    :return:
+    '''
     print("Saving File: {}/{}.csv".format(file_path, file_name))
     np.savetxt("{}/{}.csv".format(file_path, file_name), weights, delimiter=",")
 
 
 def load_saved_weight_csv(file_name, file_path="weight_files/numpy_weight_files"):
+    '''
+    Load the weights of any given csv file from a file directory and return the weights to a potential brain.
+    :param file_name: Name of the file with the .csv extension
+    :param file_path: Path to the file
+    :return: numpy array of weights
+    '''
     # Numpy read in the weight files - separate by comma
-    weights = np.loadtxt("{}/{}.csv".format(file_path, file_name), delimiter=",")
-    print("Loaded File: {}/{}.csv".format(file_path, file_name))
+    weights = np.loadtxt("{}/{}".format(file_path, file_name), delimiter=",")
+    print("Loaded File: {}/{}".format(file_path, file_name))
     return weights
+
+
+def load_all_networks(file_path='weight_files/numpy_weight_files'):
+    '''
+    Function that takes a file path and looks for all the files in there to initialize previous generation dinos.
+    Updates the global brain argument directly.
+    :param file_path: string path to file
+    :return: N/A
+    '''
+    all_weights = [f for f in listdir(file_path) if isfile(join(file_path, f))]     # Get all csv weight files
+
+    for id, weight in enumerate(all_weights):
+        DINO_BRAINS[id] = load_saved_weight_csv(weight)                # Use all the previous saved dinos

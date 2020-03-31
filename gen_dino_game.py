@@ -309,12 +309,15 @@ if __name__ == "__main__":
 
     # Loading a specific dino brain from previous runs
     if USE_PREV_GEN:
-        DINO_BRAINS[0] = load_saved_weight_csv("Dino[13]_Gen[21]_record[940]")      # Heads towards the front
-        DINO_BRAINS[1] = load_saved_weight_csv("Dino[10]_Gen[13]_record[1000]")     # Heads towards the front
-        DINO_BRAINS[2] = load_saved_weight_csv("Dino[16]_Gen[18]_record[1410]")     # Stays in the middle
-        DINO_BRAINS[3] = load_saved_weight_csv("Dino[13]_Gen[14]_record[1270]")
-        DINO_BRAINS[4] = load_saved_weight_csv("Dino[43]_Gen[19]_record[1170]")     # Stays towards back
-        DINO_BRAINS[5] = load_saved_weight_csv("Dino[49]_Gen[19]_record[1000]")     # Stays towards the back
+        load_all_networks()
+        '''
+        DINO_BRAINS[0] = load_saved_weight_csv("Dino[13]_Gen[21]_record[940].csv")      # Heads towards the front *
+        DINO_BRAINS[1] = load_saved_weight_csv("Dino[10]_Gen[13]_record[1000].csv")     # Heads towards the front *
+        DINO_BRAINS[2] = load_saved_weight_csv("Dino[16]_Gen[18]_record[1410].csv")     # Stays in the middle *
+        DINO_BRAINS[3] = load_saved_weight_csv("Dino[13]_Gen[14]_record[1270].csv")     # *
+        DINO_BRAINS[4] = load_saved_weight_csv("Dino[43]_Gen[19]_record[1170].csv")     # Stays towards back *
+        DINO_BRAINS[5] = load_saved_weight_csv("Dino[49]_Gen[19]_record[1000].csv")     # Stays towards the back
+        '''
 
     # Initialize a few game variables
     counter_games = 0       # Keep track of what game we're on
