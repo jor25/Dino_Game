@@ -76,5 +76,5 @@ def save_weights_as_csv(weights, file_name, file_path="weight_files/numpy_weight
 def load_saved_weight_csv(file_name, file_path="weight_files/numpy_weight_files"):
     # Numpy read in the weight files - separate by comma
     weights = np.loadtxt("{}/{}.csv".format(file_path, file_name), delimiter=",")
-    print("Loaded File: {}/{}.csv\n{}".format(file_path, file_name, weights))
+    print("Loaded File: {}/{}.csv".format(file_path, file_name))
     return weights

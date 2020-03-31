@@ -66,3 +66,6 @@ SAVE_WEIGHTS = False
 
 # Cutoff Points
 CUT_OFF_POINTS = 1000
+
+# Show boxes around dinos and enemies
+SHOW_BOXES = False

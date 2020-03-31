@@ -1,5 +1,6 @@
 # Creating a new file for the enemy class for code clean up
 # 3-17-20
+from configs import *
 import pygame
 
 class enemy(object):
@@ -53,8 +54,8 @@ class enemy(object):
                     self.took_dmg = False       # Turn off the damage flag
                 win.blit(txt_surf, txt_rect)
 
-            # This may be a bit redundant
-            pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
+            if SHOW_BOXES:
+                pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
 
     def move(self):                                     # Auto path for enemy to go on
         if self.vel > 0: # Go left

@@ -4,6 +4,7 @@
 # Resources:
 # Image Tinting: https://stackoverflow.com/questions/12251896/colorize-image-while-preserving-transparency-with-pil
 # Pil to Pygame images: https://stackoverflow.com/questions/25202092/pil-and-pygame-image
+from configs import *
 import pygame
 import numpy as np
 from PIL import Image
@@ -104,16 +105,17 @@ class player(object):
         self.walk_count += 1
 
         self.hitbox = (self.x+2, self.y+2, self.w-3, self.h-3)      # This may be a bit redundant
-        #'''
-        pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)  # Draw hit box
-        pygame.draw.rect(win, (255, 165, 0), (self.hitbox[0] - 50, self.hitbox[1] - 50,
-                                              self.hitbox[2] + 100, self.hitbox[3] + 100), 2)  # Draw yellow sensory box
-        pygame.draw.rect(win, (255, 255, 0), (self.hitbox[0] - 100, self.hitbox[1] - 100,
-                                              self.hitbox[2] + 200, self.hitbox[3] + 200), 2)  # Draw orange sensory box
-        '''
-        pygame.draw.rect(win, (0, 255, 0), (self.hitbox[0] - 150, self.hitbox[1] - 150,
-                                            self.hitbox[2] + 300, self.hitbox[3] + 300), 2)  # Draw green sensory box
-        #'''
+
+        if SHOW_BOXES:
+            pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)      # Draw hit box
+
+            # Draw yellow sensory box
+            pygame.draw.rect(win, (255, 255, 0), (self.hitbox[0] - 50, self.hitbox[1] - 50,
+                                                  self.hitbox[2] + 100, self.hitbox[3] + 100), 2)
+            # Draw green sensory box
+            pygame.draw.rect(win, (0, 255, 0), (self.hitbox[0] - 100, self.hitbox[1] - 100,
+                                                  self.hitbox[2] + 200, self.hitbox[3] + 200), 2)
+
 
     # Don't really need this function of generic game
     def take_dmg(self):

@@ -95,6 +95,7 @@ class game(object):
         '''
 
         global CUT_OFF_POINTS                   # Update and call up the global cut off points
+        global SAVE_WEIGHTS
 
         while not self.crash:                   # While the game has not crashed
             if VIEW_TRAINING:
@@ -184,8 +185,9 @@ class game(object):
 
                     if self.score == CUT_OFF_POINTS:    # Arbitrary number to save the model at 1000
                         CUT_OFF_POINTS += 500
+                        SAVE_WEIGHTS = True
                         self.crash = True               # Crash it if we reach here - Save the weights too...
-                        print("Game Crashed Limit reached - new limit: {}".format(CUT_OFF_POINTS))
+                        print("Game Crashed Limit reached - new limit: {} - Allow Weight Save: {}".format(CUT_OFF_POINTS, SAVE_WEIGHTS))
 
             if VIEW_TRAINING:       # Show Dinos in action when View_training flag activated
                 draw_window(font, self, Dinos, self.Enemies, moving_bg, record, final_move, living_dinos, counter_games)
@@ -303,14 +305,16 @@ def graph_display(images, population, gen_num, mut_rate):
 
 if __name__ == "__main__":
     # Initialize the genetic algorithm
-    Gen_A = ga.Gen_alg(POP_SIZE, HISTORIES)
+    Gen_A = ga.Gen_alg(POP_SIZE, HISTORIES, NUM_WEIGHTS)
 
     # Loading a specific dino brain from previous runs
     if USE_PREV_GEN:
-        DINO_BRAINS[0] = load_saved_weight_csv("Dino[13]_Gen[21]_record[940]")
-        DINO_BRAINS[1] = load_saved_weight_csv("Dino[10]_Gen[13]_record[1000]")
-        DINO_BRAINS[2] = load_saved_weight_csv("Dino[3]_Gen[7]_record[760]")
+        DINO_BRAINS[0] = load_saved_weight_csv("Dino[13]_Gen[21]_record[940]")      # Heads towards the front
+        DINO_BRAINS[1] = load_saved_weight_csv("Dino[10]_Gen[13]_record[1000]")     # Heads towards the front
+        DINO_BRAINS[2] = load_saved_weight_csv("Dino[16]_Gen[18]_record[1410]")     # Stays in the middle
         DINO_BRAINS[3] = load_saved_weight_csv("Dino[13]_Gen[14]_record[1270]")
+        DINO_BRAINS[4] = load_saved_weight_csv("Dino[43]_Gen[19]_record[1170]")     # Stays towards back
+        DINO_BRAINS[5] = load_saved_weight_csv("Dino[49]_Gen[19]_record[1000]")     # Stays towards the back
 
     # Initialize a few game variables
     counter_games = 0       # Keep track of what game we're on
@@ -368,22 +372,20 @@ if __name__ == "__main__":
 
         # Activate GA! Get a list of indexes to update and the best dino
         next_gen_updates, top_dino_id = Gen_A.check_fitness(Dinos, DINO_BRAINS)
-        print("UPDATE THESE ID's: {}".format(next_gen_updates))
 
         if game_scores[np.argmax(game_scores)] == Game.score:           # Highest score?
             BEST_BRAIN = DINO_BRAINS[top_dino_id].copy()                # Get a copy of the best dino brain
             details = "Dino[{}]_Gen[{}]_record[{}]".format(top_dino_id, counter_games+1, Game.score)
-            print("The Best Brain: {}\nID: {}\nGame Num: {}".format(BEST_BRAIN, top_dino_id, counter_games+1))
-            print(details)
+            #print("The Best Brain: {}\nID: {}\nGame Num: {}".format(BEST_BRAIN, top_dino_id, counter_games+1))
+            print("\t{}".format(details))
 
         if VIEW_GRAPHING:
             # Display the dynamically updating graph after each generation
             graph_display(images, HISTORIES, counter_games, Gen_A.mutation_rate)
 
     # Save the weights to file
-    if SAVE_WEIGHTS:
+    if SAVE_WEIGHTS and NEURAL_PLAYER:
         save_weights_as_csv(BEST_BRAIN, details)
-        #load_saved_weight_csv(details)
 
     # Arrange a list of games for plotting - Display plot from records
     game_num = np.arange(counter_games+1)
