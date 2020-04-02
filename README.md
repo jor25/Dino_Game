@@ -104,6 +104,8 @@
     * https://medium.com/ai%C2%B3-theory-practice-business/a-beginners-guide-to-numpy-with-sigmoid-relu-and-softmax-activation-functions-25b840a9a272
 * Color Change Matplotlib:
     * https://www.codespeedy.com/how-to-change-line-color-in-matplotlib/
+* Informational resource on neural networks:
+    * https://ml4a.github.io/ml4a/neural_networks/
 
     
     

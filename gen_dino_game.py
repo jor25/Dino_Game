@@ -115,8 +115,15 @@ class game(object):
             for Enemy in self.Enemies:          # For each enemy
                 Enemy.move()                    # Do the move then let the dinos react to it
                 Enemy.vel = self.speed          # Update the speed of each enemy
-                if not Enemy.alive and enemy_cd > dist_low:  # Enemy not alive and cooldown available
-                    self.Enemies[Enemy.id] = self.init_enemies(Enemy.id)  # Modify that specific enemy with new init
+
+                if not Enemy.alive:
+                    if not Enemy.got_jumped:
+                        Enemy.got_jumped = True     # Give points to all dinos
+                        self.score += 10            # Score increment by 10
+                        self.dodge_points += 1      # Dodge Points increment 1
+
+                    if enemy_cd > dist_low:         # Enemy not alive and cooldown available
+                        self.Enemies[Enemy.id] = self.init_enemies(Enemy.id)  # Modify that specific enemy with new init
 
             if enemy_cd > dist_low:             # Check to reset the enemy cooldown variable
                 enemy_cd = 0

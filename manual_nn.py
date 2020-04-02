@@ -2,7 +2,7 @@
 # 3/29/20
 # Resources
 # Manual implementation of Neural network:
-# https://github.com/TheAILearner/Training-Snake-Game-With-Genetic-Algorithm
+#   https://github.com/TheAILearner/Training-Snake-Game-With-Genetic-Algorithm
 
 from configs import *
 from os import listdir
@@ -62,9 +62,9 @@ def forward_propagation(State, ind_weight):
     w_matrix_1, w_matrix_2, w_matrix_3 = get_network_arch(ind_weight)
 
     Z1 = np.matmul(w_matrix_1, State.T)
-    A1 = np.tanh(Z1)
+    A1 = np.tanh(Z1)                        # Hyperbolic tangent activation given Z1
     Z2 = np.matmul(w_matrix_2, A1)
-    A2 = np.tanh(Z2)
+    A2 = np.tanh(Z2)                        # Hyperbolic tangent activation given Z2
     Z3 = np.matmul(w_matrix_3, A2)
     A3 = softmax(Z3)
     return A3
