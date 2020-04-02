@@ -181,7 +181,7 @@ class game(object):
                     self.got_dodge_points = False
                     self.got_walk_points = False
 
-                    if self.score == CUT_OFF_POINTS:    # Arbitrary number to save the model at 1000
+                    if self.score == CUT_OFF_POINTS and NEURAL_PLAYER:    # Arbitrary number to save the model at 1000
                         CUT_OFF_POINTS += 500
                         SAVE_WEIGHTS = True
                         self.crash = True               # Crash it if we reach here - Save the weights too...
@@ -326,7 +326,7 @@ if __name__ == "__main__":
 
         # Initialize all the plots
         for i in range(len(Gen_A.population)):
-            temp_img, = plt.plot(Gen_A.population[i].fit_vals, np.arange(len(Gen_A.population[i].fit_vals)))
+            temp_img, = plt.plot(Gen_A.population[i].fit_vals, np.arange(len(Gen_A.population[i].fit_vals)), "{}".format(COLOR[i]))
             images.append(temp_img)
 
     if VIEW_TRAINING:

@@ -1,8 +1,15 @@
 # Dino_Game
-* Using pygame to program the google dinosaur.
+*   Using pygame to program the google dinosaur. The game allows for two types of configurations.
+    Currently, tensorflow has been deactivated for performance with CPU. Option 1 is to play the 
+    game as a human, controls are the arrow keys.
+    Option 2 is using the in game artificial intelligence. This is implemented with manual numpy
+    neural networks with a genetic algorithm to adjust the weights for individual dinosaurs.
+
+# Background
+*   Genetic Algorithms
+*   Neural Networks
 
 # Set Up:
-* May just make a makefile for these start up commands.
     `virtualenv -p python3 env`
     `source env/bin/activate`
     `pip install pygame`
@@ -13,6 +20,26 @@
     `pip install matplotlib`
     `pip install seaborn`
     `pip install sklearn`
+    `pip install os`
+
+# Configurations:
+* All configurations to game display and uses can be made in the config.py file.
+  Look for the `MODIFIABLE GLOBAL CONFIGS` comment.
+    * Global Configuration Variables
+        * `VIEW_TRAINING` - Set `True` if want to see the game in action
+        * `VIEW_GRAPHING` - Set `True` if want to see dynamic graphing per game
+        * `HUMAN` - Set `True` if want to play the game with arrow keys
+        * `SHOW_BOXES` - Set `True` if want to see boundary boxes around dinos and enemies
+    
+    * Genetic algorithm specific
+        * `GA_POP` - Integer for population for genetic algorithm if in use
+        * `MAX_GAMES` - Integer number of games/generations to play
+        * `USE_PREV_GEN` - Set `True` to use previous generation dinos
+        * `REC_CUT_OFF` - Integer recommended cutoff point to start saving weights
+
+# How to Run:
+    `python gen_dino_game.py`
+
     
 # File Functionality:
 * collect_states.py
@@ -45,10 +72,6 @@
     - File specifically designed to train dino on user collected data and produce a model to play game.
     - Also provides dino with a single state to see what it predicts.
 
-# Modifications:
-* Always update the human and neural booleans in gen_dino file,
-  these determine whether or not to collect data from human user,
-  or use the neural network.
 
 # Weight Files:
     "Dino[13]_Gen[21]_record[940].csv"      # Heads towards the front *
@@ -75,3 +98,13 @@
     * https://towardsdatascience.com/lets-code-a-neural-network-in-plain-numpy-ae7e74410795
 * Numpy Random Choice:
     * https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.random.choice.html
+* Get files from Directories:
+    * https://stackoverflow.com/questions/3207219/how-do-i-list-all-files-of-a-directory
+* AI theory:
+    * https://medium.com/ai%C2%B3-theory-practice-business/a-beginners-guide-to-numpy-with-sigmoid-relu-and-softmax-activation-functions-25b840a9a272
+* Color Change Matplotlib:
+    * https://www.codespeedy.com/how-to-change-line-color-in-matplotlib/
+
+    
+    
+    
