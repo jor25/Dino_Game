@@ -7,7 +7,7 @@ import numpy as np
 # MODIFIABLE GLOBAL CONFIGS
 # *************************************************************************************
 # Global Configuration Variables
-VIEW_TRAINING = True                # Viewing variable: True if I want to see the game in action
+VIEW_TRAINING = not True                # Viewing variable: True if I want to see the game in action
 VIEW_GRAPHING = True                    # True if I want to see dynamic graphing
 HUMAN = False                           # Activate Human Player - ie if I want to play the game myself
 SHOW_BOXES = False                      # Show boxes around dinos and enemies

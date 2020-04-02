@@ -5,9 +5,11 @@
     Option 2 is using the in game artificial intelligence. This is implemented with manual numpy
     neural networks with a genetic algorithm to adjust the weights for individual dinosaurs.
 
+
 # Background
 *   Genetic Algorithms
 *   Neural Networks
+
 
 # Set Up:
     `virtualenv -p python3 env`
@@ -21,6 +23,7 @@
     `pip install seaborn`
     `pip install sklearn`
     `pip install os`
+
 
 # Configurations:
 * All configurations to game display and uses can be made in the config.py file.
@@ -37,10 +40,21 @@
         * `USE_PREV_GEN` - Set `True` to use previous generation dinos
         * `REC_CUT_OFF` - Integer recommended cutoff point to start saving weights
 
+
 # How to Run:
     `python gen_dino_game.py`
 
-    
+
+# Examples
+Genetic Algorithm - Population: 50, Generations: 50
+![alt text](images/examples/Gen_alg_pop50_gens50_mr0.2.png)
+| `VIEW_TRAINING = False` | `VIEW_GRAPHING = True` |
+
+Genetic Algorithm - Population: 10, Generations: 20
+![alt text](images/examples/pre_trained_run.gif)    
+| `VIEW_TRAINING = True` | `VIEW_GRAPHING = True` |
+
+
 # File Functionality:
 * collect_states.py
     - Collect states from dino in game and post game.
@@ -80,6 +94,7 @@
     "Dino[13]_Gen[14]_record[1270].csv"     # *
     "Dino[43]_Gen[19]_record[1170].csv"     # Stays towards back *
     "Dino[49]_Gen[19]_record[1000].csv"     # Stays towards the back
+     
         
 # References:
 * Image tint
@@ -106,7 +121,8 @@
     * https://www.codespeedy.com/how-to-change-line-color-in-matplotlib/
 * Informational resource on neural networks:
     * https://ml4a.github.io/ml4a/neural_networks/
-
+* Convert screen recording into GIF
+    * https://www.screentogif.com/
     
     
     
